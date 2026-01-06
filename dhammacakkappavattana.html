@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Path Weaver — Bilingual (EN + සිංහල)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #071026;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.09);
+      --stroke: rgba(255,255,255,0.12);
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans Sinhala", "Noto Sans", sans-serif;
+      background:
+        radial-gradient(1200px 650px at 12% 10%, rgba(99,102,241,0.42), transparent 55%),
+        radial-gradient(950px 520px at 88% 12%, rgba(16,185,129,0.28), transparent 60%),
+        radial-gradient(900px 720px at 55% 92%, rgba(236,72,153,0.22), transparent 60%),
+        linear-gradient(180deg, var(--bg), #040816);
+      color: rgba(255,255,255,0.92);
+    }
+    .glass { background: var(--card); border: 1px solid var(--stroke); backdrop-filter: blur(10px); }
+    .glass2 { background: var(--card2); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(10px); }
+    .btn {
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+    }
+    .btn:hover { background: rgba(255,255,255,0.12); }
+    .muted { color: rgba(255,255,255,0.70); }
+    .muted2 { color: rgba(255,255,255,0.58); }
+    .chip {
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+    }
+    .chipOk {
+      border: 1px solid rgba(16,185,129,0.38);
+      background: rgba(16,185,129,0.16);
+      color: rgba(209,250,229,0.95);
+    }
+    .chipWarn {
+      border: 1px solid rgba(245,158,11,0.44);
+      background: rgba(245,158,11,0.16);
+      color: rgba(254,243,199,0.95);
+    }
+    .kbd {
+      border:1px solid rgba(255,255,255,0.2);
+      border-bottom-width:2px;
+      background:rgba(255,255,255,0.08);
+      padding:2px 6px;
+      border-radius:10px;
+      font-size:12px;
+    }
+    .rowCell .en { font-weight: 600; }
+    .rowCell .si { margin-top: 6px; color: rgba(255,255,255,0.78); }
+    .rowCell .missing { margin-top: 6px; color: rgba(255,255,255,0.45); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-sm">
+          <span class="font-semibold">Path Weaver</span>
+          <span class="muted">·</span>
+          <span class="muted">Bilingual view (EN + සිංහල)</span>
+        </div>
+        <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
+          Contemporary Framework for Buddhist Practice
+        </h1>
+        <p class="mt-2 muted max-w-3xl">
+          Click a category → click a path node → view the full row with table headings.
+          Both languages are shown <span class="font-semibold">together</span> at the path-node level.
+        </p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <button id="homeBtn" class="btn px-4 py-2 rounded-xl font-semibold">Home</button>
+        <button id="backBtn" class="btn px-4 py-2 rounded-xl font-semibold hidden">Back</button>
+      </div>
+    </header>
+
+    <section class="mt-8">
+      <div class="glass2 rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div class="flex items-center gap-2">
+            <span class="chip px-3 py-1 rounded-full text-sm">Tip</span>
+            <span class="muted text-sm">Use <span class="kbd">Esc</span> to go back • Use search to filter nodes</span>
+          </div>
+          <div class="w-full sm:w-96">
+            <input id="search" class="w-full rounded-xl px-4 py-2 bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/25"
+                   placeholder="Search categories / path nodes (English or Sinhala)..." />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Views -->
+    <main class="mt-6">
+      <div id="viewHome"></div>
+      <div id="viewCategory" class="hidden"></div>
+      <div id="viewDetails" class="hidden"></div>
+    </main>
+
+    <footer class="mt-10 muted2 text-sm">
+      Offline-friendly single-file app. If Sinhala text is missing for a row, the app shows English + a “Sinhala missing” marker.
+    </footer>
+  </div>
+
+<script>
+  const FRAMEWORK = [{"id": "A", "title_en": "Category A — Energy Awareness & Decoupling", "description_en": "Daily-Life Buddhist Logic Gates based on the Brain / Energy Model", "title_si": "", "description_si": "", "pathNodes": [{"code": "A1", "pathNode_en": "Path A1 (Sensory Unit) — Contact Recognition", "dhammaInsight_en": "Recognition of raw experience as phassa before interpretation.", "patipatti_en": "Gently label the moment as “contact” without adding meaning.", "paticcaLogic_en": "Contact recognised → narrative delayed → reaction latency increases.", "paccuppannaAnubhava_en": "Receiving a harsh email, you note: “Contact has occurred.”", "pathNode_si": "මාර්ගය A1 (සංවේදක ඒකකය) — සම්බන්ධතා හඳුනාගැනීම", "dhammaInsight_si": "අර්ථ නිරූපණයට පෙර වන අත්දැකීම් ඵස්ස ලෙස හඳුනා ගැනීම.", "patipatti_si": "අර්ථයක් එකතු නොකර එම මොහොත (ඵස්ස ලෙස හඳුනා ගැනීම.) \"සම්බන්ධතාවය\" ලෙස මෘදු ලෙස ලේබල් කරන්න.", "paticcaLogic_si": "සම්බන්ධතා හඳුනාගැනීම → එම සම්බන්දතාවය වර්නනා කිරීම ප්‍රමාද කර ගැනීම → ප්‍රතික්‍රියාව ප්‍රමාද කර ගැනීම.", "paccuppannaAnubhava_si": "ඔබට දොස් කියා ඇති ඊමේල් පණිවිඩයක් ලැබුණු පසු, ඔබ මෙසේ සටහන් කරයි: “සම්බන්ධතාවයක් ඇති වී තිබේ.”"}, {"code": "A2", "pathNode_en": "Path A2 (Energy Unit) — Energy Signal Scanning", "dhammaInsight_en": "Awareness of motivational energy as bodily sensation.", "patipatti_en": "Scan chest, belly, jaw, throat for heat, tightness, urgency.", "paticcaLogic_en": "Energy felt somatically → cognitive dominance reduces.", "paccuppannaAnubhava_en": "You feel chest tightness before reacting.", "pathNode_si": "මාර්ගය A2 (ශක්ති ඒකකය - ඩොපමීන් ශ්‍රාවය) — ශක්ති සංඥා පිලිබද අවබෝදය", "dhammaInsight_si": "ශාරීරික සංවේදනයක් ලෙස අභිප්‍රේරණ ශක්තිය පිළිබඳ දැනුවත්භාවය.", "patipatti_si": "පපුව, බඩ, හකු, උගුර පිලිබදව අවධානය යොමු කර දැනෙන උනුසුම, තද බව, හදිසි බව පරීක්ෂා කරන්න.", "paticcaLogic_si": "ශාරීරිකව ශක්තිය දැනීම → සංජානන ආධිපත්‍යය අඩු වේ.", "paccuppannaAnubhava_si": "ප්‍රතික්‍රියා කිරීමට පෙර ඔබට පපුවේ තද ගතියක් දැනේ."}, {"code": "A3", "pathNode_en": "Path A3 (Idea Unit) — Pre-Narrative Interception", "dhammaInsight_en": "Interrupting story formation before identity arises.", "patipatti_en": "Stop analysis and attend to raw sensation for 2–3 seconds.", "paticcaLogic_en": "Narrative blocked → craving weakens.", "paccuppannaAnubhava_en": "Instead of blaming, you feel vibration only.", "pathNode_si": "A3 මාර්ගය (අදහස් ඒකකය) — පූර්ව-ආඛ්‍යාන අන්තර්ග්‍රහණය", "dhammaInsight_si": "අනන්‍යතාවය ඇතිවීමට පෙර කථා ගොඩනැගීමට බාධා කිරීම.", "patipatti_si": "විශ්ලේෂණය නවතා තත්පර 2-3ක් මූලික සංවේදනයට අවධානය යොමු කරන්න.", "paticcaLogic_si": "ආඛ්‍යානය අවහිර කර ඇත → තෘෂ්ණාව දුර්වල වේ.", "paccuppannaAnubhava_si": "දොස් පැවරීම වෙනුවට, ඔබට දැනෙන්නේ කම්පනයක් පමණි."}, {"code": "A4", "pathNode_en": "Path A4 (Control Unit) — Volitional Pause", "dhammaInsight_en": "Creating a gap between urge and action.", "patipatti_en": "Remain silent and still for 3–5 seconds.", "paticcaLogic_en": "Pause inserted → automatic reaction blocked.", "paccuppannaAnubhava_en": "You stop typing an angry reply.", "pathNode_si": "A4 මාර්ගය (පාලන ඒකකය) — ස්වේච්ඡා විරාමය", "dhammaInsight_si": "ආශාව සහ ක්‍රියාව අතර පරතරයක් නිර්මාණය කිරීම.", "patipatti_si": "තත්පර 3–5ක් නිහඬව හා නිශ්චලව සිටින්න.", "paticcaLogic_si": "විරාමය ඇතුළත් කරන ලදී → ස්වයංක්‍රීය ප්‍රතික්‍රියාව අවහිර කර ඇත.", "paccuppannaAnubhava_si": "ඔබ තරහෙන් උත්තර ලියන එක නවත්තන්න."}, {"code": "A5", "pathNode_en": "Path A5 (Energy Unit) — Somatic Containment", "dhammaInsight_en": "Keeping energy within the body without discharge.", "patipatti_en": "Breathe and allow sensation to remain without action.", "paticcaLogic_en": "Energy contained → urgency drops → clarity increases.", "paccuppannaAnubhava_en": "Desire to scroll remains, but you do not act.", "pathNode_si": "මාර්ගය A5 (බලශක්ති ඒකකය) — සීමා කිරීම", "dhammaInsight_si": "ශරීරය තුළ ශක්තිය බැහැර කිරීමකින් තොරව තබා ගැනීම.", "patipatti_si": "හුස්ම ගන්න සහ සංවේදනය ක්‍රියා නොකර සිටීමට ඉඩ දෙන්න.", "paticcaLogic_si": "අඩංගු ශක්තිය → හදිසි බව අඩු වේ → පැහැදිලි බව වැඩි වේ.", "paccuppannaAnubhava_si": "අනුචලනය කිරීමේ ආශාව ඉතිරිව ඇත, නමුත් ඔබ ක්‍රියා නොකරයි.."}, {"code": "A6", "pathNode_en": "Path A6 (Idea Unit) — Taṇhā Identification", "dhammaInsight_en": "Naming craving to reduce identification.", "patipatti_en": "Label “I must / I need” as taṇhā.", "paticcaLogic_en": "Craving named → ownership weakens.", "paccuppannaAnubhava_en": "You note: “This urge is craving.”", "pathNode_si": "A6 මාර්ගය (අදහස් ඒකකය) — තන්හා හඳුනාගැනීම", "dhammaInsight_si": "හඳුනාගැනීම අඩු කිරීමට නම් කිරීමේ ආශාව.", "patipatti_si": "\"මට අවශ්‍යයි / මට අවශ්‍යයි\" යන්න තන්හාව ලෙස ලේබල් කරන්න.", "paticcaLogic_si": "තෂ්නාව නම් කර ඇත → තෘෂ්නාවේ අයිතිය දුර්වල වෙමින් ඇත. .", "paccuppannaAnubhava_si": "\"මෙම ආශාව තෘෂ්ණාවයි.\" ඔබ සටහන් කර ගන්න:"}, {"code": "A7", "pathNode_en": "Path A7 (Control Unit) — Majjhima Regulation", "dhammaInsight_en": "Maintaining the Middle Way with energy.", "patipatti_en": "Allow urge without indulgence or suppression.", "paticcaLogic_en": "Energy allowed but unfed → equilibrium maintained.", "paccuppannaAnubhava_en": "Anger is felt without explosion or repression.", "pathNode_si": "A7 මාර්ගය (පාලන ඒකකය) - මජ්ජිම නියාමනය", "dhammaInsight_si": "ශක්තියෙන් මැද මාවත පවත්වා ගැනීම.", "patipatti_si": "තෘප්තියෙන් හෝ මර්දනයෙන් තොරව ආශාවට ඉඩ දෙන්න.", "paticcaLogic_si": "අවසර ලත් නමුත් පෝෂණය නොකළ ශක්තිය → සමතුලිතතාවය පවත්වා ගනී.", "paccuppannaAnubhava_si": "කෝපය දැනෙන්නේ පිපිරීමකින් හෝ මර්දනයකින් තොරවය."}, {"code": "A8", "pathNode_en": "Path A8 (Idea Unit) — Narrative–Sensation Differentiation", "dhammaInsight_en": "Separating story from direct experience.", "patipatti_en": "Ask “Story or sensation?” and return to sensation.", "paticcaLogic_en": "Narrative drops → perception clarified.", "paccuppannaAnubhava_en": "You feel tightness instead of blame.", "pathNode_si": "මාර්ගය A8 (අදහස් ඒකකය) — ආඛ්‍යානය–සංවේදන අවකලනය", "dhammaInsight_si": "කතාව සෘජු අත්දැකීමෙන් වෙන් කිරීම.", "patipatti_si": "\"කතාවක්ද නැත්නම් සංවේදනයක්ද?\" කියලා අහලා සංවේදනයට ආපහු යන්න.", "paticcaLogic_si": "ආඛ්‍යානය ක්‍රමිකව අඩුවේ → සංජානනය පැහැදිලිවී ඇත.", "paccuppannaAnubhava_si": "ඔබ දොස් පැවරීම කරනවා වෙනුවට ඔබට වෙනුවට තද බවක් දැනේ."}, {"code": "A9", "pathNode_en": "Path A9 (Sensory Unit) — Somatic Softening", "dhammaInsight_en": "Reducing bodily contraction gently.", "patipatti_en": "Soften tense areas by ~10%.", "paticcaLogic_en": "Tension reduces → energy intensity lowers.", "paccuppannaAnubhava_en": "Jaw relaxes slightly during irritation.", "pathNode_si": "මාර්ගය A9 (සංවේදක ඒකකය) — මෘදු කිරීම", "dhammaInsight_si": "ශාරීරික හැකිලීම මෘදු ලෙස අඩු කිරීම.", "patipatti_si": "ආතති සහගත ප්‍රදේශ ~10% කින් මෘදු කරන්න.", "paticcaLogic_si": "ආතතිය අඩු වේ → ශක්ති තීව්‍රතාවය අඩු වේ.", "paccuppannaAnubhava_si": "කෝපයක් ඇති වූ විට හකු තරමක් ලිහිල් වේ."}, {"code": "A10", "pathNode_en": "Path A10 (Control Unit) — Yoniso Redirection", "dhammaInsight_en": "Redirecting energy toward clarity.", "patipatti_en": "Ask: “Craving or clarity?”", "paticcaLogic_en": "Motivation re-oriented → compulsion weakens.", "paccuppannaAnubhava_en": "You choose not to escalate an argument.", "pathNode_si": "මාර්ගය A10 (පාලන ඒකකය) — යෝනිසෝමනසිකාරය හරවා යැවීම", "dhammaInsight_si": "ශක්තිය පැහැදිලිකම දෙසට යොමු කිරීම.", "patipatti_si": "අසන්න: \"තෘෂ්ණාව ද පැහැදිලිකමද ?\"", "paticcaLogic_si": "අභිප්‍රේරණය නැවත නැඹුරු වීම → බල කිරීම දුර්වල වේ.", "paccuppannaAnubhava_si": "ඔබ තර්කයක් උත්සන්න නොකිරීමට තීරණය කරයි."}, {"code": "A11", "pathNode_en": "Path A11 (Design Unit) — Impermanence Perception", "dhammaInsight_en": "Seeing arising and passing of urges.", "patipatti_en": "Observe sensation as changing.", "paticcaLogic_en": "Impermanence seen → clinging dissolves.", "paccuppannaAnubhava_en": "Anger rises and fades like a wave.", "pathNode_si": "මාර්ගය A11 (සැලසුම් ඒකකය) — අනිත්‍ය සංජානනය", "dhammaInsight_si": "ආවේගයන් ඇතිවීම සහ පහව යාම දැකීම.", "patipatti_si": "සංවේදනය වෙනස් වන ආකාරය නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "අනිත්‍ය බව දක්නට ලැබේ → ඇලීම දිය වේ.", "paccuppannaAnubhava_si": "කෝපය රැල්ලක් මෙන් නැඟී මැකී යයි"}, {"code": "A12", "pathNode_en": "Path A12 (Control Unit) — Free Choice Emergence", "dhammaInsight_en": "Acting from clarity rather than urgency.", "patipatti_en": "Choose: act, delay, or let go.", "paticcaLogic_en": "Choice decoupled from craving.", "paccuppannaAnubhava_en": "You delay sending a message.", "pathNode_si": "මාර්ගය A12 (පාලන ඒකකය) — නිදහස් තේරීම් මතුවීම", "dhammaInsight_si": "හදිසිතාවයෙන් නොව පැහැදිලි බවින් ක්‍රියා කිරීම.", "patipatti_si": "තෝරන්න: ක්‍රියා කරන්න, ප්‍රමාද කරන්න, නැතහොත් අතහරින්න.", "paticcaLogic_si": "තේරීම තෘෂ්ණාවෙන් වෙන් විය.", "paccuppannaAnubhava_si": "ඔබ පණිවිඩයක් යැවීම ප්‍රමාද කරනවා."}, {"code": "A13", "pathNode_en": "Path A13 (Control Unit) — Right Speech Safeguard", "dhammaInsight_en": "Preventing harmful verbal discharge.", "patipatti_en": "Check tone; if hot, pause or stay silent.", "paticcaLogic_en": "Harm avoided → trust preserved.", "paccuppannaAnubhava_en": "You stop a harsh comment.", "pathNode_si": "A13 මාර්ගය (පාලන ඒකකය) — නිවැරදි කථනය", "dhammaInsight_si": "හානිකර වාචික විසර්ජනය වැළැක්වීම.", "patipatti_si": "ස්වරය පරීක්ෂා කරන්න; උණුසුම් නම්, විරාමයක් තබන්න හෝ නිහඬව සිටින්න.", "paticcaLogic_si": "හානිය වළක්වා ඇත → විශ්වාසය ආරක්ෂා කර ඇත.", "paccuppannaAnubhava_si": "ඔඔ රළු අදහස් දැක්වීම නවත්වා ඇත."}, {"code": "A14", "pathNode_en": "Path A14 (Memory Unit) — Conditioning Review", "dhammaInsight_en": "Re-encoding experience to weaken loops.", "patipatti_en": "Briefly review contact, story, energy.", "paticcaLogic_en": "Memory updated → earlier detection next time.", "paccuppannaAnubhava_en": "You see where energy attached.", "pathNode_si": "මාර්ගය A14 (මතක ඒකකය) — සමාලෝචනය", "dhammaInsight_si": "ලැබූ රලු අත්දැකීම දුර්වල කිරීම සඳහා එම රලු අත්දැකීම් නැවත සමාලෝචනය.", "patipatti_si": "සම්බන්ධතාව, කතාව, ශක්තිය කෙටියෙන් සමාලෝචනය කරන්න.", "paticcaLogic_si": "මතකය යාවත්කාලීන කරන ලදී → ඊළඟ වතාවේ කලින් අනාවරණය.", "paccuppannaAnubhava_si": "ශක්තිය සම්බන්ධ වී ඇති ස්ථානය ඔබට පෙනේ."}, {"code": "A15", "pathNode_en": "Path A15 (Memory Unit) — Habit Reconditioning", "dhammaInsight_en": "Transforming habits through repetition.", "patipatti_en": "Set small daily gate targets.", "paticcaLogic_en": "Repetition → conditioning shifts.", "paccuppannaAnubhava_en": "You practice pausing three times today.", "pathNode_si": "Path A15 (මතක ඒකකය) — පුරුදු නැවත සකස් කිරීම", "dhammaInsight_si": "පුනරාවර්තනය තුළින් පුරුදු පරිවර්තනය කිරීම.", "patipatti_si": "කුඩා දෛනික මාර්ග ඉලක්ක සකසන්න.", "paticcaLogic_si": "පුනරාවර්තනය → තත්වය මාරුවීම්.", "paccuppannaAnubhava_si": "අද ඔබ තුන් පාරක් මෙම පුතිචාර දැක්වීම පුමාද කරන්න පුරුදු වෙනවා."}, {"code": "A16", "pathNode_en": "Path A16 (Control Unit) — Sīla Containment", "dhammaInsight_en": "Preventing energy from entering harm.", "patipatti_en": "STOP → pause → right action/speech.", "paticcaLogic_en": "Ethical boundary enforced → suffering prevented.", "paccuppannaAnubhava_en": "You refuse to lie under pressure.", "pathNode_si": "A16 මාර්ගය (පාලන ඒකකය) — සීලය රැකිම", "dhammaInsight_si": "ශක්තිය හානි දායක තත්වයන්ට යොමු වීම වැළැක්වීම.", "patipatti_si": "නවත්වන්න → විරාමය → නිවැරදි ක්‍රියාව/කතාව.", "paticcaLogic_si": "සදාචාරාත්මක සීමාව බලාත්මක කරන ලදී → දුක් වේදනා වළක්වා ඇත.", "paccuppannaAnubhava_si": "ඔබ පීඩනය යටතේ බොරු කීම ප්‍රතික්ෂේප කරයි. කාන්ඩය B — දුක්ඛ පිළිගැනීම / හඳුනාගැනීම මාර්ගය (ආරම්භක ඒකකය) දහම පිලිබද තීක්ෂ්ණ බුද්ධිය ප්‍රතිපත්ති (පුහුණු ආකාරය) පටිච්ච තර්කනය (කොන්දේසිගතභාවය) පච්චුප්පන්න අනුභාව"}]}, {"id": "B", "title_en": "Category B — Dukkha Recognition", "description_en": "Seeing suffering as it actually operates", "title_si": "", "description_si": "", "pathNodes": [{"code": "B1", "pathNode_en": "Path B1 (Sensory Unit) — Dukkha Signal Recognition", "dhammaInsight_en": "Dukkha appears as felt unease.", "patipatti_en": "Notice tension, irritation, restlessness.", "paticcaLogic_en": "Discomfort noticed → denial stops.", "paccuppannaAnubhava_en": "Subtle irritation while waiting.", "pathNode_si": "B1 මාර්ගය (සංවේදක ඒකකය) — දුක්ඛ සංඥා හඳුනාගැනීම", "dhammaInsight_si": "දුක්ඛයනොසන්සුන් බවක් ලෙස දැන හඳුනාගැනීම.", "patipatti_si": "ආතතිය, කෝපය, නොසන්සුන් බව ලෙස හඳුනාගැනීම", "paticcaLogic_si": "දුක අපහසුතාවයක් ලෙස දකින්න → ප්‍රතික්ෂේප කිරීම නතර කරන්න.", "paccuppannaAnubhava_si": "සියුම් අපහසුතාවය දෙස ක්‍රියාත්මක වීමකින් තොරව නැවතී බලා සිටින්න"}, {"code": "B2", "pathNode_en": "Path B2 (Design Unit) — Non-Pain Dukkha Recognition", "dhammaInsight_en": "Suffering exists without pain.", "patipatti_en": "Observe boredom, agitation.", "paticcaLogic_en": "Unease seen → dukkha identified.", "paccuppannaAnubhava_en": "Restless scrolling.", "pathNode_si": "B2 මාර්ගය (නිර්මාණ ඒකකය) — වේදනා රහිතව දුක්ඛ හඳුනාගැනීම", "dhammaInsight_si": "වේදනාවක් නොමැතිව දුක පවතින ආකාරය දකින්න.", "patipatti_si": "දුක නිසා ඇතිවන කම්මැලිකම, කලබල වීම නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "දුක නිසා ඇතිවෙන නොසන්සුන් බව ඔබට අත් දකින්න → දැන් ඔබ දුක්ඛය හඳුනාගෙන ඇත.", "paccuppannaAnubhava_si": "දුක නිසා ඇතිවෙන නොසන්සුන් අනුචලනය දකින්න."}, {"code": "B3", "pathNode_en": "Path B3 (Idea Unit) — Expectation Gap Detection", "dhammaInsight_en": "Dukkha arises from expectation mismatch.", "patipatti_en": "Ask: “What did I expect?”", "paticcaLogic_en": "Gap seen → craving exposed.", "paccuppannaAnubhava_en": "Praise expected, silence received.", "pathNode_si": "B3 මාර්ගය (අදහස් ඒකකය) — අපේක්ෂා පරතරය හඳුනාගැනීම", "dhammaInsight_si": "දුක්ඛය ඇතිවන්නේ අපේක්ෂා කල දේ සහ ලැබුන දේ අතර නොගැලපීමෙනි.", "patipatti_si": "ඔබ ඔබෙන් අහන්න: \"මම බලාපොරොත්තු වුණේ කුමක්ද කියා මොකක්ද?\"", "paticcaLogic_si": "එවිට ඔබට පරතරය දැක ගත හැකිය → තෘෂ්ණාව නිරාවරණය වී ඇත.", "paccuppannaAnubhava_si": "එවිට ප්‍රශංසාව අපේක්ෂා කලද එය නොලැබුනද, නිශ්ශබ්දතාවය ඔබ තුල වැඩෛ්."}, {"code": "B4", "pathNode_en": "Path B4 (Control Unit) — Resistance Recognition", "dhammaInsight_en": "Resistance itself is dukkha.", "patipatti_en": "Notice mental pushing or rejecting.", "paticcaLogic_en": "Resistance seen → struggle ends.", "paccuppannaAnubhava_en": "Protesting a delay internally.", "pathNode_si": "මාර්ගය B4 (පාලන ඒකකය) — ප්‍රතිරෝධ හඳුනාගැනීම", "dhammaInsight_si": "අපේක්ෂිත දේ නොලැබීම නිසා සහ ලැබුන දේ ප්‍රතික්ෂේප කිරීම නිසා ඇතිවන ප්‍රතිරෝධයම දුක්ඛයයි.", "patipatti_si": "මානසිකව ඔබ ලැබුන දේ ඉවත් කිරීමට දරන උත්සාහය හෝ ප්‍රතික්ෂේප කිරීම දකින්න.", "paticcaLogic_si": "ඔබ දැන් ඔබේ මනස තුල ඇතිවූ ප්‍රතිරෝධය දැක ඇත → මෙය මනසේ වූ අරගලය අවසන් කිරීමට හේතු වේ.", "paccuppannaAnubhava_si": "අභ්‍යන්තරව ප්‍රමාදයකට විරෝධය පළ කිරීම."}, {"code": "B5", "pathNode_en": "Path B5 (Idea Unit) — Control Illusion Exposure", "dhammaInsight_en": "Control craving causes suffering.", "patipatti_en": "Notice urge to manage outcomes.", "paticcaLogic_en": "Control exposed → frustration explained.", "paccuppannaAnubhava_en": "Tension controlling opinions.", "pathNode_si": "මාර්ගය B5 (අදහස් ඒකකය) — ඔබ දකින මායාව පාලනය කරන්න", "dhammaInsight_si": "ආශාව පාලනය කිරීම දුක් වේදනා ඇති කරයි.", "patipatti_si": "ඔබ තුල ඇතිවන ප්‍රතිඵල කළමනාකරණය කිරීමට ඇති උනන්දුව දැනගන්න.", "paticcaLogic_si": "ඔබ ආශාව පාලනය කිරීමට දැරූ උත්සාහය නිරාවරණය වී ඇත → කලකිරීම පැහැදිලි විය.", "paccuppannaAnubhava_si": "ආතතිය පාලනය කරන අදහස් ඔබ සිතෙහි මතුවේ."}, {"code": "B6", "pathNode_en": "Path B6 (Design Unit) — Impermanence Clinging Detection", "dhammaInsight_en": "Clinging to change produces dukkha.", "patipatti_en": "Notice fear when states shift.", "paticcaLogic_en": "Change resisted → suffering arises.", "paccuppannaAnubhava_en": "Anxiety when success fades.", "pathNode_si": "B6 මාර්ගය (සැලසුම් ඒකකය) — අනිත්‍යතාවයේ ඇලෙන සුළු බව හඳුනාගැනීම", "dhammaInsight_si": "ඔබ අත් දකින ලද දුකට හේතු වූ ඇතිවූ වෙනසට ඇලී සිටීමෙන් දුක්ඛ ඇති වේ.", "patipatti_si": "ඔබ බලාපොරොත්තු නොවන ලෙස තත්වයන් මාරු වන විට ඇති වන බිය දකින්න.", "paticcaLogic_si": "වෙනස් වීමට විරුද්ධ වීම → දුක් වේදනා ඇති වන බව දකින්න.", "paccuppannaAnubhava_si": "සාර්ථකත්වය මැකී යන විට ඇතිවන කනස්සල්ල දකින්න."}, {"code": "B7", "pathNode_en": "Path B7 (Idea Unit) — Identity Involvement Detection", "dhammaInsight_en": "Self-reference intensifies suffering.", "patipatti_en": "Notice “I am…” narratives.", "paticcaLogic_en": "Identity activated → dukkha intensifies.", "paccuppannaAnubhava_en": "Feedback hurts personally.", "pathNode_si": "B7 මාර්ගය (අදහස් ඒකකය) — අනන්‍යතා සම්බන්ධය හඳුනාගැනීම", "dhammaInsight_si": "ස්වයං යොමු වීම දුක් වේදනා තීව්‍ර කරයි.", "patipatti_si": "\"මම...\" ප්‍රධානව සිදුවූ දේ පිලිබද ඇතිවන සිතිවිලි දකින්න.", "paticcaLogic_si": "අනන්‍යතාවය සක්‍රීය වන ආකාරය දකින්න → දුක්ඛ තීව්‍ර වේ.", "paccuppannaAnubhava_si": "ප්‍රතිපෝෂණ පුද්ගලිකව වේදනාව ගෙන දෙන ආකාරය දකින්න."}, {"code": "B8", "pathNode_en": "Path B8 (Idea Unit) — Comparison Recognition", "dhammaInsight_en": "Comparison generates dissatisfaction.", "patipatti_en": "Observe mental measuring.", "paticcaLogic_en": "Comparison seen → discontent explained.", "paccuppannaAnubhava_en": "Social media inadequacy.", "pathNode_si": "මාර්ගය B8 (අදහස් ඒකකය) — සංසන්දනාත්මක හඳුනාගැනීම", "dhammaInsight_si": "සංසන්දනය කිරීමෙන් අතෘප්තිය ඇති වන බව දකින්න", "patipatti_si": "ඔබේ මනස තුල සිදුවන මානසික මිනුම් නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "දැන් ඔබ සංසන්දනය දැක ඇත → ඒනිසා එබට අතෘප්තිය පැහැදිලිවී ඇත.", "paccuppannaAnubhava_si": "සමාජ මාධ්‍ය ප්‍රමාණවත් නොවීම නිසා ඔබ තනිව ඔබ දෙස බැලීම තුල පටු සංසන්දනය සිදුවේ."}, {"code": "B9", "pathNode_en": "Path B9 (Energy Unit) — Craving-Linked Dukkha", "dhammaInsight_en": "Craving fuels suffering.", "patipatti_en": "Trace unease to wanting/avoiding.", "paticcaLogic_en": "Craving identified → cause clarified.", "paccuppannaAnubhava_en": "Anxiety from craving certainty.", "pathNode_si": "B9 මාර්ගය (ශක්ති ඒකකය) — තෘෂ්ණාව හා සම්බන්ධ දුක්ඛ", "dhammaInsight_si": "තෘෂ්ණාව දුක් විඳීමට ඉන්ධන සපයයි.", "patipatti_si": "ඔබ තුල යම් දෙයක අවශ්‍යතාවය හෝ අනවශ්‍ය බව නිසා ඇතිවන නොසන්සුන්තාවය සොයා ගන්න.", "paticcaLogic_si": "දැන් ඔබට යම් අවශ්‍යතාවයක් නිසා හෝ අවනශ්‍ය බව නිසා ඇතිවන තෘෂ්ණාව හඳුනාගැනීමට හැකිය→ දඅකට හේතුව පැහැදිලි වී ඇත.", "paccuppannaAnubhava_si": "නිශ්චිතභාවයට ඇති ආශාව නිසා ඇතිවන කාංසාව."}, {"code": "B10", "pathNode_en": "Path B10 (Memory Unit) — Pattern Recognition", "dhammaInsight_en": "Dukkha repeats as patterns.", "patipatti_en": "Notice recurring emotional loops.", "paticcaLogic_en": "Pattern seen → depersonalization.", "paccuppannaAnubhava_en": "Same irritation repeats.", "pathNode_si": "B10 මාර්ගය (මතක ඒකකය) — රටා හඳුනාගැනීම", "dhammaInsight_si": "දුක්ඛය රටා ලෙස පුනරාවර්තනය වේ.", "patipatti_si": "නැවත නැවත ඇතිවන චිත්තවේගනිරීක්ෂණය කරන්න.", "paticcaLogic_si": "ඔබට දැන් මේ දුක ඇතිවන රටාව දැකිය හැකිය → එම රටා ඔබ පුද්ගලීක අතිදැකීමක් ලෙස ග්‍රහනය කරමින් ඇත.", "paccuppannaAnubhava_si": "එවිට එකම ආකාරයට නොසන්සුන් බව හෝ ඇතිවූ කෝපය නැවත නැවතත් ඇති වේ."}, {"code": "B11", "pathNode_en": "Path B11 (Control Unit) — Normalisation of Dukkha", "dhammaInsight_en": "Dukkha is universal, not failure.", "patipatti_en": "Reflect: “This is human.”", "paticcaLogic_en": "Shame drops → observation possible.", "paccuppannaAnubhava_en": "Self-blame dissolves.", "pathNode_si": "මාර්ගය B11 (පාලන ඒකකය) — දුක්ඛ සාමාන්‍යකරණය", "dhammaInsight_si": "දුක්ඛ යනු විශ්වයේ පවතින දෙයක් ලෙස දකින්න, එය අසාර්ථකත්වය නොවේ.", "patipatti_si": "ඔබ මනුස්සයෙක් බව මෙනෙහි කරන්න:", "paticcaLogic_si": "ඔබට ඇතිවූ ලැජ්ජාව ක්‍රමයෙන් අඩු වන ආකාරය දකින්න → දැන් ඔබට එය නිරීක්ෂණය කළ හැකිය.", "paccuppannaAnubhava_si": "ස්වයං දෝෂාරෝපණය ක්‍රමයෙන් අබුවෙමින් යන ආකාරය දකින්න"}, {"code": "B12", "pathNode_en": "Path B12 (Control Unit) — Diagnostic Completion", "dhammaInsight_en": "Clear naming of dukkha.", "patipatti_en": "Acknowledge calmly: “This is dukkha.”", "paticcaLogic_en": "Recognition complete → causal inquiry ready.", "paccuppannaAnubhava_en": "You name suffering clearly.", "pathNode_si": "මාර්ගය B12 (පාලන ඒකකය) — දුකෙහි විනිශ්චය සම්පූර්ණ කිරීම", "dhammaInsight_si": "දුක්ඛ ස්වභාවය ඔබ දැන් පැහැදිලිව දැක හදුනාගෙන ඇත.", "patipatti_si": "\"මේ දුක්ඛ.\" බව සන්සුන්ව පිළිගන්න:", "paticcaLogic_si": "ඔබ දැන් හඳුනාගැනීම සම්පූර්ණ කර ඇත → හේතුඵල විමර්ශනයට ඔබ සූදානම් .", "paccuppannaAnubhava_si": "දැන් ඔබ දුක පැහැදිලිව දැක ඇත. කාන්ඩය C — සමුදය (හේතු අවබෝධය) මාර්ගය (ආරම්භක ඒකකය) දහම පිලිබද තීක්ෂ්ණ බුද්ධිය ප්‍රතිපත්ති (පුහුණු ආකාරය) පටිච්ච තර්කනය (කොන්දේසිගතභාවය) පච්චුප්පන්න අනුභාව"}]}, {"id": "C", "title_en": "Category C — Samudaya (Causal Understanding)", "description_en": "Seeing how suffering arises", "title_si": "", "description_si": "", "pathNodes": [{"code": "C1", "pathNode_en": "Path C1 (Energy Unit) — Craving Presence Detection", "dhammaInsight_en": "Craving is present now.", "patipatti_en": "Ask: “Wanting or resisting?”", "paticcaLogic_en": "Craving detected → cause inquiry begins.", "paccuppannaAnubhava_en": "Need for approval noticed.", "pathNode_si": "C1 මාර්ගය (ශක්ති ඒකකය) — තෘෂ්ණා පැවැත්ම හඳුනාගැනීම", "dhammaInsight_si": "ආශාව දැන් තියෙන බව දැනගැනීම.", "patipatti_si": "ආශාව / තෘෂ්නාව නිසා ඔබ තුල ඇතිවන්නේ", "paticcaLogic_si": "\"අවශ්‍ය බවද නැත්නම් අනවශ්‍ය විරුද්ධත්වයද?\" යන්න ඔබෙන්ම අසන්න:", "paccuppannaAnubhava_si": "තෘෂ්ණාව අනාවරණය විය → හේතුව විමසීම ආරම්භ වේ. අනුමැතිය අවශ්‍ය බව ඔබ දැන් වටහා ගනිමින් ඇත."}, {"code": "C2", "pathNode_en": "Path C2 (Energy Unit) — Energy Attachment Recognition", "dhammaInsight_en": "Energy binds to objects/outcomes.", "patipatti_en": "Observe urgency direction.", "paticcaLogic_en": "Energy-object link → dukkha explained.", "paccuppannaAnubhava_en": "Anxiety tied to message reply.", "pathNode_si": "C2 මාර්ගය (ශක්ති ඒකකය) — ශක්තියේ ඇලීම හඳුනාගැනීම", "dhammaInsight_si": "ශක්තිය අපේ පංචේන්ද්‍රියන්ට ග්‍රහනය වන වස්තූන්ට හා අපේ ක්‍රියාකාරකම් වල ප්‍රතිඵල සමඟ බන්ධනය වේ.", "patipatti_si": "මෙම ශක්තියේ හදිසි ක්‍රියාකාරීත්වය හා දිශාව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "ශක්තිය හා වස්තුන් අතර සබැඳිය → දුක්ඛයේ හටගැන්ම පැහැදිලි කරයි.", "paccuppannaAnubhava_si": "පණිවිඩ පිළිතුරට සම්බන්ධ කාංසාව."}, {"code": "C3", "pathNode_en": "Path C3 (Energy Unit) — Kāma-Taṇhā Recognition", "dhammaInsight_en": "Pleasure-seeking craving identified.", "patipatti_en": "Notice chasing comfort/distraction.", "paticcaLogic_en": "Pleasure loop exposed.", "paccuppannaAnubhava_en": "Scrolling to escape boredom.", "pathNode_si": "මාර්ගය C3 (බලශක්ති ඒකකය) — කාම තන්හා හදුනාගැනීම / පිළිගැනීම", "dhammaInsight_si": "සතුට සොයන තෘෂ්ණාව හඳුනාගැනීම.", "patipatti_si": "සැනසීම පසුපස හඹා යන බව හෝ දුකෙන් ඉවතට යාම හදුනාගන්න.", "paticcaLogic_si": "විනෝද ලූපය නිරාවරණය විය.", "paccuppannaAnubhava_si": "කම්මැලිකමෙන් මිදීමට අනුචලනය කිරීම."}, {"code": "C4", "pathNode_en": "Path C4 (Idea Unit) — Bhava-Taṇhā Recognition", "dhammaInsight_en": "Becoming craving identified.", "patipatti_en": "Notice identity-building urges.", "paticcaLogic_en": "Identity craving → pressure clarified.", "paccuppannaAnubhava_en": "Overworking to feel valuable.", "pathNode_si": "C4 මාර්ගය (අදහස් ඒකකය) — භව-තණ්හා හඳුනාගැනීම", "dhammaInsight_si": "තෘෂ්ණාව හඳුනා ගැනීම.", "patipatti_si": "තෘෂ්නාව විසින් ගොඩනගන හදුනාගැනීම සහ පෙළඹවීම් දකින්න.", "paticcaLogic_si": "තෘෂ්නාවේ හදුනාගැනීම → එමගින් ඇතිවන පීඩනය පැහැදිලිව දකින්න.", "paccuppannaAnubhava_si": "හදුනාගත් තෘෂ්නාවට වටිනා බවක් ලබා දීමට වැඩිපුර වැඩ කිරීම."}, {"code": "C5", "pathNode_en": "Path C5 (Energy Unit) — Vibhava-Taṇhā Recognition", "dhammaInsight_en": "Escape/avoidance craving identified.", "patipatti_en": "Notice urge to numb or disappear.", "paticcaLogic_en": "Avoidance loop exposed.", "paccuppannaAnubhava_en": "Wanting feeling gone.", "pathNode_si": "මාර්ගය C5 (ශක්ති ඒකකය) — විභව තන්හාව හදුනාගැනීම / පිළිගැනීම", "dhammaInsight_si": "පලායාමේ/වැළැක්වීමේ තෘෂ්ණාව හඳුනාගෙන ඇත.", "patipatti_si": "අතුරුදහන් වීමට ඇති ආශාව දකින්න.", "paticcaLogic_si": "වැළැක්වීමේ ලූපය නිරාවරණය වී ඇත.", "paccuppannaAnubhava_si": "අවශ්‍යතාවය නැති වෙලා වගේ දැනෙනබව වටහා ගන්න."}, {"code": "C6", "pathNode_en": "Path C6 (Idea Unit) — Ownership Recognition", "dhammaInsight_en": "“Mine” thinking intensifies craving.", "patipatti_en": "Observe possessive language.", "paticcaLogic_en": "Ownership → clinging.", "paccuppannaAnubhava_en": "Anger when plans fail.", "pathNode_si": "C6 මාර්ගය (අදහස් ඒකකය) — තෘෂ්නාවේ හිමිකාරිත්වය හඳුනා ගැනීම", "dhammaInsight_si": "\"මගේ\" යන සිතුවිල්ල තෘෂ්ණාව තීව්‍ර කරයි.", "patipatti_si": "ඔබ සතු භාෂාව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "තෘෂ්නාවේ හිමිකාරිත්වය වෙත → ඇලී සිටීම.", "paccuppannaAnubhava_si": "සැලසුම් අසාර්ථක වූ විට කෝපයහටගන්නා බව දකින්න."}, {"code": "C7", "pathNode_en": "Path C7 (Idea Unit) — Expectation Feeding", "dhammaInsight_en": "Expectations nourish craving.", "patipatti_en": "Ask: “What outcome do I expect?”", "paticcaLogic_en": "Expectation → disappointment.", "paccuppannaAnubhava_en": "Expecting appreciation.", "pathNode_si": "C7 මාර්ගය (අදහස් ඒකකය) — අපේක්ෂා පෝෂණය", "dhammaInsight_si": "අපේක්ෂාවන් තෘෂ්ණාව පෝෂණය කරයි.", "patipatti_si": "\"මම බලාපොරොත්තු වන ප්‍රතිඵලය කුමක්ද?\" කියා අසන්න.", "paticcaLogic_si": "අපේක්ෂාව → බලාපොරොත්තු සුන්වීම.", "paccuppannaAnubhava_si": "අගය කිරීමක් අපේක්ෂා කිරීම."}, {"code": "C8", "pathNode_en": "Path C8 (Control Unit) — Resistance as Cause", "dhammaInsight_en": "Resistance itself is craving.", "patipatti_en": "Notice pushing away experience.", "paticcaLogic_en": "Resistance → suffering sustained.", "paccuppannaAnubhava_en": "Rejecting delay.", "pathNode_si": "C8 මාර්ගය (පාලන ඒකකය) — ප්‍රතිරෝධය හේතුව ලෙස", "dhammaInsight_si": "ප්‍රතිරෝධය යනු තෘෂ්ණාවයි.", "patipatti_si": "පළපුරුද්ද ඉවතට තල්ලු කිරීම දකින්න.", "paticcaLogic_si": "ප්‍රතිරෝධය → විඳදරාගත් දුක් වේදනා.", "paccuppannaAnubhava_si": "ප්‍රමාදය ප්‍රතික්ෂේප කිරීම."}, {"code": "C9", "pathNode_en": "Path C9 (Idea Unit) — Thought Reinforcement", "dhammaInsight_en": "Thinking feeds craving.", "patipatti_en": "Notice rumination and replay.", "paticcaLogic_en": "Thought loop → escalation.", "paccuppannaAnubhava_en": "Replaying arguments.", "pathNode_si": "C9 මාර්ගය (අදහස් ඒකකය) — සිතුවිලි ශක්තිමත් කිරීම", "dhammaInsight_si": "සිතීම තෘෂ්ණාව පෝෂණය කරයි.", "patipatti_si": "කල්පනා කරමින් නැවත නැවත සිතිවිල් ඇතිවීම දකින්න.", "paticcaLogic_si": "සිතුවිලි ලූපය → උත්සන්න වීම.", "paccuppannaAnubhava_si": "තර්ක නැවත නැවත ස්මරණය කිරීම."}, {"code": "C10", "pathNode_en": "Path C10 (Energy Unit) — Emotional Amplification", "dhammaInsight_en": "Emotions carry craving energy.", "patipatti_en": "Trace emotion to wanting/fearing.", "paticcaLogic_en": "Emotion → craving exposed.", "paccuppannaAnubhava_en": "Fear from wanting certainty.", "pathNode_si": "C10 මාර්ගය (ශක්ති ඒකකය) — චිත්තවේග වැඩිදියුනු කිරීම / විස්තාරණය", "dhammaInsight_si": "හැඟීම් තෘෂ්ණා ශක්තිය රැගෙන යන අයුරු දකින්න.", "patipatti_si": "හැඟීම් ආශාව/බිය ලුහුබඳින අයුරු දකින්න.", "paticcaLogic_si": "හැඟීම් නිසා → ආශාව නිරාවරණය වන අයුරු දකින්න..", "paccuppannaAnubhava_si": "නිශ්චිතභාවයක් අවශ්‍ය වීමෙන් ඇති වන බිය දකින්න."}, {"code": "C11", "pathNode_en": "Path C11 (Memory Unit) — Habitual Loop Recognition", "dhammaInsight_en": "Conditioning sustains craving.", "patipatti_en": "Observe repeated triggers.", "paticcaLogic_en": "Habit loop → depersonalization.", "paccuppannaAnubhava_en": "Same authority irritation.", "pathNode_si": "Path C11 (මතක ඒකකය) — පුරුදු ලූප හඳුනාගැනීම", "dhammaInsight_si": "තත්වය වඩා හොදින් පැවතීමට කටයුතු කිරීම තෘෂ්ණාව පවත්වා ගනී.", "patipatti_si": "නැවත නැවත ඇතිවන ප්‍රේරක නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "පුරුදු ලූපය → පුද්ගලීකරණය.", "paccuppannaAnubhava_si": "එකම අධිකාරියේ කෝපය."}, {"code": "C12", "pathNode_en": "Path C12 (Control Unit) — False Solution Detection", "dhammaInsight_en": "Craving promises relief falsely.", "patipatti_en": "Ask if strategy ever ended dukkha.", "paticcaLogic_en": "Illusion exposed → wisdom grows.", "paccuppannaAnubhava_en": "Buying happiness.", "pathNode_si": "C12 මාර්ගය (පාලන ඒකකය) — ව්‍යාජ විසඳුම් අනාවරණය", "dhammaInsight_si": "තෘෂ්ණාව බොරුවට සහනයක් පොරොන්දු වේ.", "patipatti_si": "තෘෂ්නාව පෙන්වන මාර්ගයෙන් දුක්ඛය කවදා හෝ අවසන් කල හැකිදැයි විමසන්න.", "paticcaLogic_si": "මායාව නිරාවරණය වීම → ප්‍රඥාව වැඩෙන අයුරු දකින්න..", "paccuppannaAnubhava_si": "සතුට මිලදී ගැනීම."}, {"code": "C13", "pathNode_en": "Path C13 (Energy Unit) — Time Pressure Recognition", "dhammaInsight_en": "Urgency is craving.", "patipatti_en": "Notice “must be now.”", "paticcaLogic_en": "Time craving → tension.", "paccuppannaAnubhava_en": "Rushing stress.", "pathNode_si": "C13 මාර්ගය (ශක්ති ඒකකය) — කාල පීඩන හඳුනාගැනීම", "dhammaInsight_si": "හදිසි බව යනු ආශාවයි / තෘෂ්කානයි.", "patipatti_si": "\"දැන් විය යුතුයි\" ලෙස සිතිවිලි කැගීම දකින්න.", "paticcaLogic_si": "කාලයට ඇති ආශාව → ආතතිය.", "paccuppannaAnubhava_si": "කඩිනම් ආතතිය."}, {"code": "C14", "pathNode_en": "Path C14 (Control Unit) — Control Craving Recognition", "dhammaInsight_en": "Control-seeking causes dukkha.", "patipatti_en": "Notice urge to manage others.", "paticcaLogic_en": "Control craving → frustration.", "paccuppannaAnubhava_en": "Trying to control responses.", "pathNode_si": "C14 මාර්ගය (පාලන ඒකකය) — තෘෂ්ණාව හඳුනාගැනීම පාලනය කිරීම", "dhammaInsight_si": "පාලනය සෙවීම දුක්ඛයට හේතු වේ.", "patipatti_si": "අන් අයව කළමනාකරණය කිරීමට ඇති ආශාව දකින්න.", "paticcaLogic_si": "ආශාව පාලනය කිරීම → කලකිරීම මතුවන බව දකින්න.", "paccuppannaAnubhava_si": "ප්‍රතිචාර පාලනය කිරීමට උත්සාහ කිරීම."}, {"code": "C15", "pathNode_en": "Path C15 (Control Unit) — Causal Naming", "dhammaInsight_en": "Clear linking of dukkha to taṇhā.", "patipatti_en": "Name cause explicitly.", "paticcaLogic_en": "Cause known → cessation possible.", "paccuppannaAnubhava_en": "“Stress is fed by craving.”", "pathNode_si": "C15 මාර්ගය (පාලන ඒකකය) — හේතුකාරක නම් කර හදුනාගැනීම", "dhammaInsight_si": "දුක්ඛ සහ තන්හා අතර පැහැදිලි සම්බන්ධය දකින්න.", "patipatti_si": "හේතුව පැහැදිලිව නම් කරන්න.", "paticcaLogic_si": "හේතුව දන්නා බව → නැවැත්වීමට හැකියාව ලැබේ.", "paccuppannaAnubhava_si": "\"ආතතිය පෝෂණය වන්නේ ආශාවෙන් හෙවත් තෘෂ්නාවෙනි.\" කාන්ඩය D — නිරෝධ (නිරෝධ) මාර්ගය (ආරම්භක ඒකකය) දහම පිලිබද තීක්ෂ්ණ බුද්ධිය ප්‍රතිපත්ති (පුහුණු ආකාරය) පටිච්ච තර්කනය (කොන්දේසිගතභාවය) පච්චුප්පන්න අනුභාව"}]}, {"id": "D", "title_en": "Category D — Nirodha (Cessation)", "description_en": "Seeing the stopping of suffering in real time", "title_si": "", "description_si": "", "pathNodes": [{"code": "D1", "pathNode_en": "Path D1 (Control Unit) — Cause Absence Recognition", "dhammaInsight_en": "Craving absent → suffering stops.", "patipatti_en": "Check for wanting now.", "paticcaLogic_en": "Cause absent → effect ceases.", "paccuppannaAnubhava_en": "Calm without needing.", "pathNode_si": "D1 මාර්ගය (පාලන ඒකකය) — හේතුව නොමැති අවස්ථාව හඳුනාගැනීම", "dhammaInsight_si": "තෘෂ්ණාව නැතිවීම → දුක් වේදනා නතර වේ.", "patipatti_si": "තෘෂ්නාව හටගත් දේ දැන්ම අවශ්‍යදැයි පරීක්ෂා කරන්න.", "paticcaLogic_si": "හේතුව නොමැති වීම → බලපෑම නතර වේ.", "paccuppannaAnubhava_si": "අවශ්‍යතාවයකින් තොරව සන්සුන් වන්න."}, {"code": "D2", "pathNode_en": "Path D2 (Energy Unit) — Energy Settling", "dhammaInsight_en": "Unfed energy settles naturally.", "patipatti_en": "Stay present without feeding.", "paticcaLogic_en": "Energy settles → calm emerges.", "paccuppannaAnubhava_en": "Anger fades.", "pathNode_si": "D2 මාර්ගය (බලශක්ති ඒකකය) — ශක්තිය නිරවුල්ව පවත්වා ගැනීම", "dhammaInsight_si": "තෘෂ්නාවෙන් පෝෂණය නොකළ ශක්තිය ස්වභාවිකව සමනය වේ.", "patipatti_si": "තෘෂ්නාව පෝෂණය නොකර වර්තමානය තුල පෙනී සිටින්න.", "paticcaLogic_si": "ශක්තිය සමනය වේ → සන්සුන් භාවය මතු වේ.", "paccuppannaAnubhava_si": "කෝපය පහව යයි."}, {"code": "D3", "pathNode_en": "Path D3 (Control Unit) — Non-Reaction Verification", "dhammaInsight_en": "Non-reaction ends loops.", "patipatti_en": "Allow experience to pass.", "paticcaLogic_en": "No reaction → dukkha ends.", "paccuppannaAnubhava_en": "Irritation dissolves.", "pathNode_si": "D3 මාර්ගය (පාලන ඒකකය) — ප්‍රතික්‍රියා නොමැති සත්‍යාපනය", "dhammaInsight_si": "ප්‍රතික්‍රියා නොමැති විට විවිධ ලූප කෙළවරට පැමිනේ .", "patipatti_si": "මෙම ලබන අත්දැකීම් සමත් වීමට ඉඩ දෙන්න.", "paticcaLogic_si": "ප්‍රතිචාරයක් නොමැති බව තුල → දුක්ඛ අවසන් වේ.", "paccuppannaAnubhava_si": "කෝපය ක්‍රමයෙන් පහව යයි."}, {"code": "D4", "pathNode_en": "Path D4 (Sensory Unit) — Gap Awareness", "dhammaInsight_en": "Space appears without craving.", "patipatti_en": "Attend to stillness.", "paticcaLogic_en": "Gap perceived → freedom tasted.", "paccuppannaAnubhava_en": "Quiet pause arises.", "pathNode_si": "D4 මාර්ගය (සංවේදක ඒකකය) — පරතරය පිළිබඳ දැනුවත්භාවය", "dhammaInsight_si": "අවකාශය තෘෂ්ණාවකින් තොරව දිස්වේ.", "patipatti_si": "නිශ්චලතාවයට අවධානය යොමු කරන්න.", "paticcaLogic_si": "පරතරය දැනුණා → නිදහස රස වින්දා.", "paccuppannaAnubhava_si": "නිහඬ විරාමයක් පැන නගී."}, {"code": "D5", "pathNode_en": "Path D5 (Sensory Unit) — Relief Recognition", "dhammaInsight_en": "Relief marks cessation.", "patipatti_en": "Notice bodily ease.", "paticcaLogic_en": "Relief felt → cessation confirmed.", "paccuppannaAnubhava_en": "Shoulders drop.", "pathNode_si": "D5 මාර්ගය (සංවේදක ඒකකය) — සහන හඳුනාගැනීම", "dhammaInsight_si": "සහනය නැවැත්වීම නැතහොත් නිරෝධය සනිටුහන් කරයි.", "patipatti_si": "ශාරීරික සැහැල්ලුව අත්විදින්න.", "paticcaLogic_si": "ඔබට සහනයක් දැනුණා → නැවැත්වීම තහවුරු කළා.", "paccuppannaAnubhava_si": "උරහිස් පහළට වැටේ."}, {"code": "D6", "pathNode_en": "Path D6 (Idea Unit) — Non-Acquisition Insight", "dhammaInsight_en": "Peace without getting.", "patipatti_en": "Observe calm without gain.", "paticcaLogic_en": "No acquisition → insight deepens.", "paccuppannaAnubhava_en": "Peace without solving.", "pathNode_si": "D6 මාර්ගය (අදහස් ඒකකය) — අත්පත් කර නොගැනීමේ අවබෝධය", "dhammaInsight_si": "ලබා නොගෙන සාමයට ලං වීම.", "patipatti_si": "ලාභයකින් තොරව සන්සුන් බව අත් විදින්න.", "paticcaLogic_si": "අත්පත් කර ගැනීමක් නැත → තීක්ෂ්ණ බුද්ධිය ගැඹුරු වේ.", "paccuppannaAnubhava_si": "විසඳීමෙන් තොර සාමය."}, {"code": "D7", "pathNode_en": "Path D7 (Energy Unit) — Cooling Experience", "dhammaInsight_en": "Cessation is cooling.", "patipatti_en": "Notice reduction of heat.", "paticcaLogic_en": "Cooling → nibbāna principle seen.", "paccuppannaAnubhava_en": "Emotional cooling.", "pathNode_si": "D7 මාර්ගය (බලශක්ති ඒකකය) — සැනසිලි දායක අත්දැකීම", "dhammaInsight_si": "අත්හිටුවීම / ප්‍රතිචාර නොදැක් වීම සැනසිලි දායක තත්වය මතු කරයි.", "patipatti_si": "දැවෙනසුලු බව අඩු වීම නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "සැනසිලිදායක බව → නිබ්බාන මූලධර්මය දර්ශනය වේ", "paccuppannaAnubhava_si": "චිත්තවේගීය සැනසිලිදායක බව."}, {"code": "D8", "pathNode_en": "Path D8 (Control Unit) — Non-Compulsion Freedom", "dhammaInsight_en": "Freedom lacks compulsion.", "patipatti_en": "Check optionality of action.", "paticcaLogic_en": "Compulsion gone → autonomy.", "paccuppannaAnubhava_en": "Acting or not freely.", "pathNode_si": "D8 මාර්ගය (පාලන ඒකකය) — බලහත්කාරයෙන් තොර නිදහස", "dhammaInsight_si": "නිදහසට බල කිරීමක් නැත.", "patipatti_si": "ක්‍රියාවෙහි විකල්පභාවය පරීක්ෂා කරන්න.", "paticcaLogic_si": "බලකිරීම නැති වී ඇත → ස්වයං පාලනය.", "paccuppannaAnubhava_si": "නිදහසේ ක්‍රියා කිරීම හෝ නොකිරීම."}, {"code": "D9", "pathNode_en": "Path D9 (Energy Unit) — Sufficiency Experience", "dhammaInsight_en": "“Enough” without craving.", "patipatti_en": "Notice contentment.", "paticcaLogic_en": "Sufficiency → craving loop breaks.", "paccuppannaAnubhava_en": "Satisfaction without validation.", "pathNode_si": "D9 මාර්ගය (බලශක්ති ඒකකය) — ප්‍රමාණවත් බව පිළිබඳ අත්දැකීම්", "dhammaInsight_si": "ආශාවකින් තොරව \"ඇති වීම\".", "patipatti_si": "තෘප්තිය අත් දකින්න..", "paticcaLogic_si": "ප්‍රමාණවත් බව → තෘෂ්ණා ලූපය බිඳී යයි.", "paccuppannaAnubhava_si": "තහවුරු කිරීමකින් තොරවූ තෘප්තිය."}, {"code": "D10", "pathNode_en": "Path D10 (Idea Unit) — Non-Identification", "dhammaInsight_en": "Experience without “I.”", "patipatti_en": "Observe without ownership.", "paticcaLogic_en": "Identity drops → suffering absent.", "paccuppannaAnubhava_en": "Emotion not personal.", "pathNode_si": "D10 මාර්ගය (අදහස් ඒකකය) — හඳුනා නොගැනීම", "dhammaInsight_si": "\"මම\" නොමැතිව අත්දැකීම.", "patipatti_si": "හිමිකාරිත්වය නොමැතිව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "අනන්‍යතාවය පහත වැටේ → දුක් විඳීම නොමැති බව.", "paccuppannaAnubhava_si": "හැඟීම්, පුද්ගලික නොවේ."}, {"code": "D11", "pathNode_en": "Path D11 (Sensory Unit) — Momentary Nirodha", "dhammaInsight_en": "Brief cessations seen.", "patipatti_en": "Acknowledge micro-cessations.", "paticcaLogic_en": "Recognition → confidence grows.", "paccuppannaAnubhava_en": "Silence between thoughts.", "pathNode_si": "D11 මාර්ගය (සංවේදක ඒකකය) — නිරෝධය", "dhammaInsight_si": "කෙටි නැවතීම් අත් දකින්න ලැබේ.", "patipatti_si": "ක්ෂුද්‍ර නැත්නම් කෙටි නැවතීම් අත්දකින්න / පිළිගන්න.", "paticcaLogic_si": "පිළිගැනීම → විශ්වාසය වර්ධනය වේ.", "paccuppannaAnubhava_si": "සිතුවිලි අතර නිහඬතාවයක්."}, {"code": "D12", "pathNode_en": "Path D12 (Memory Unit) — Trust in Cessation", "dhammaInsight_en": "Confidence in letting go.", "patipatti_en": "Recall previous cessations.", "paticcaLogic_en": "Trust → easier release.", "paccuppannaAnubhava_en": "Trust pausing.", "pathNode_si": "D12 මාර්ගය (මතක ඒකකය) — නැවැත්වීම කෙරෙහි විශ්වාසය", "dhammaInsight_si": "අත්හැරීම පිළිබඳ විශ්වාසය.", "patipatti_si": "පෙර නැවැත්වීම් සිහිපත් කරන්න.", "paticcaLogic_si": "විශ්වාසය → පහසු මුදා හැරීම.", "paccuppannaAnubhava_si": "විශ්වාසය මත නතරවීම."}, {"code": "D13", "pathNode_en": "Path D13 (Control Unit) — Non-Fear of Emptiness", "dhammaInsight_en": "Stillness without fear.", "patipatti_en": "Remain present in nothingness.", "paticcaLogic_en": "Fear absent → deeper calm.", "paccuppannaAnubhava_en": "Resting in not-knowing.", "pathNode_si": "D13 මාර්ගය (පාලන ඒකකය) — තෘෂ්නාවෙන් තොර බව / හිස්බව පිළිබඳ බිය නොවීම", "dhammaInsight_si": "බියෙන් තොර නිශ්චලතාව.", "patipatti_si": "තෘෂ්නාව නොමැති තත්වයක සිටින බව අත්දකින්න.", "paticcaLogic_si": "බිය නැත → ගැඹුරු සන්සුන්කම.", "paccuppannaAnubhava_si": "තෘෂ්නාව පිලිබද නොදැනුවත්කමේ රැඳී සිටීම."}, {"code": "D14", "pathNode_en": "Path D14 (Control Unit) — Natural Ethics", "dhammaInsight_en": "Virtue arises spontaneously.", "patipatti_en": "Observe harmlessness.", "paticcaLogic_en": "Cessation → ethics natural.", "paccuppannaAnubhava_en": "Kind speech arises.", "pathNode_si": "D14 මාර්ගය (පාලන ඒකකය) — ස්වභාවික ආචාර ධර්ම", "dhammaInsight_si": "ශීලය ස්වයංසිද්ධව ඇතිවේ.", "patipatti_si": "හානිකර නොවන බව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "නැවැත්වීම → ආචාර ධර්ම ස්වභාවිකයි.", "paccuppannaAnubhava_si": "කරුණාවන්ත කතාව ඇතිවේ."}, {"code": "D15", "pathNode_en": "Path D15 (Control Unit) — Cessation Confirmation", "dhammaInsight_en": "Clear knowing of ending.", "patipatti_en": "Acknowledge cessation quietly.", "paticcaLogic_en": "Wisdom stabilizes.", "paccuppannaAnubhava_en": "“Stress is gone.”", "pathNode_si": "D15 මාර්ගය (පාලන ඒකකය) — නැවැත්වීම තහවුරු කිරීම", "dhammaInsight_si": "අවසානය ගැන පැහැදිලිව දැන සිටීම.", "patipatti_si": "නිහඬව නැවැත්වීම පිළිගන්න.", "paticcaLogic_si": "ප්‍රඥාව ස්ථාවර කරයි.", "paccuppannaAnubhava_si": "\"ආතතිය නැති වෙලා.\" කාන්ඩය E — මග්ග (මාර්ගය) මාර්ගය (ආරම්භක ඒකකය) දහම පිලිබද තීක්ෂ්ණ බුද්ධිය ප්‍රතිපත්ති (පුහුණු ආකාරය) පටිච්ච තර්කනය (කොන්දේසිගතභාවය) පච්චුප්පන්න අනුභාව"}]}, {"id": "E", "title_en": "Category E — Magga (Path Integration)", "description_en": "Stabilizing freedom through the Noble Eightfold Path", "title_si": "", "description_si": "", "pathNodes": [{"code": "E1", "pathNode_en": "Path E1 (Control Unit) — Right View Activation", "dhammaInsight_en": "View aligns with Four Noble Truths.", "patipatti_en": "Recall causal understanding.", "paticcaLogic_en": "View aligned → direction stable.", "paccuppannaAnubhava_en": "Stress reframed wisely.", "pathNode_si": "E1 මාර්ගය (පාලන ඒකකය) — නිවැරදි දසුන සක්‍රිය කිරීම", "dhammaInsight_si": "දැක්ම චතුරාර්ය සත්‍යයන් සමඟ සමපාත වේ.", "patipatti_si": "හේතුඵල අවබෝධය සිහිපත් කරන්න.", "paticcaLogic_si": "එකිනෙක ගැලපෙන පරිදි පෙළගස්වා ඇත. → දිශාව ස්ථාවරයි.", "paccuppannaAnubhava_si": "ආතතිය ඥානවන්තව නැවත සකස් කර ඇත."}, {"code": "E2", "pathNode_en": "Path E2 (Idea Unit) — Right Intention", "dhammaInsight_en": "Intention purified.", "patipatti_en": "Set non-greed, non-harm intention.", "paticcaLogic_en": "Intention → softened action.", "paccuppannaAnubhava_en": "Kind response chosen.", "pathNode_si": "E2 මාර්ගය (අදහස් ඒකකය) — නිවැරදි අභිප්‍රාය", "dhammaInsight_si": "චේතනාව පිරිසිදු කර ඇත.", "patipatti_si": "තණ්හාවෙන් තොර, හානියක් නොවන චේතනාව සකසන්න.", "paticcaLogic_si": "චේතනාව → මෘදු කළ ක්‍රියාව.", "paccuppannaAnubhava_si": "කාරුණික ප්‍රතිචාරයක් තෝරාගෙන ඇත."}, {"code": "E3", "pathNode_en": "Path E3 (Control Unit) — Right Speech Filter", "dhammaInsight_en": "Speech avoids harm.", "patipatti_en": "Check truth, kindness, timing.", "paticcaLogic_en": "Filtered speech → less suffering.", "paccuppannaAnubhava_en": "Silence chosen.", "pathNode_si": "E3 මාර්ගය (පාලන ඒකකය) — නිවැරදි කථනය", "dhammaInsight_si": "කතාවෙන් සිදඅවිය හැකි හානි වළක්වයි.", "patipatti_si": "සත්‍යය, කරුණාව, කාලය පරීක්ෂා කරන්න.", "paticcaLogic_si": "පාලනය කළ කථාව →දුක් වේදනා අඩු කරයි.", "paccuppannaAnubhava_si": "නිහඬතාවය තෝරා ගන්නා ලදී."}, {"code": "E4", "pathNode_en": "Path E4 (Control Unit) — Right Action Alignment", "dhammaInsight_en": "Actions align with non-harm.", "patipatti_en": "Pause before acting.", "paticcaLogic_en": "Alignment → regret avoided.", "paccuppannaAnubhava_en": "Impulse restrained.", "pathNode_si": "E4 මාර්ගය (පාලන ඒකකය) — නිවැරදි ක්‍රියා පෙළගැස්ම", "dhammaInsight_si": "ක්‍රියාවන් හානියක් නොවන බවට අනුකූල වේ.", "patipatti_si": "සිතිවිලි ක්‍රියාවට නැගීමට කලින් මොහොතක් නවතින්න.", "paticcaLogic_si": "නිවැරදි පෙළගැස්ම → පසුතැවීම වැළකුණා.", "paccuppannaAnubhava_si": "ආවේගය සංයමයෙන්."}, {"code": "E5", "pathNode_en": "Path E5 (Memory Unit) — Right Livelihood Check", "dhammaInsight_en": "Work supports well-being.", "patipatti_en": "Reflect on livelihood impact.", "paticcaLogic_en": "Alignment → background stress lowers.", "paccuppannaAnubhava_en": "Honest work chosen.", "pathNode_si": "E5 මාර්ගය (මතක ඒකකය) — නිවැරදි ජීවනෝපාය පරීක්ෂාව", "dhammaInsight_si": "ක්‍රියාව යහපැවැත්මට සහාය වේ.", "patipatti_si": "ජීවනෝපාය බලපෑම ගැන මෙනෙහි කරන්න.", "paticcaLogic_si": "නිවැරදි පෙළගැස්ම → පසුබිම් ආතතිය අඩු කරයි.", "paccuppannaAnubhava_si": "අවංක ක්‍රියාවක් තෝරාගෙන ඇත."}, {"code": "E6", "pathNode_en": "Path E6 (Energy Unit) — Right Effort Calibration", "dhammaInsight_en": "Balanced effort sustained.", "patipatti_en": "Avoid forcing or neglect.", "paticcaLogic_en": "Balance → continuity.", "paccuppannaAnubhava_en": "Gentle consistency.", "pathNode_si": "E6 මාර්ගය (ශක්ති ඒකකය) — නිවැරදි උත්සාහ ක්‍රමාංකනය", "dhammaInsight_si": "සමබර උත්සාහයක් පවත්වා ගෙන යන ලදී.", "patipatti_si": "බලහත්කාරයෙන් හෝ නොසලකා හැරීමෙන් වළකින්න.", "paticcaLogic_si": "ශේෂය → අඛණ්ඩතාව.", "paccuppannaAnubhava_si": "මෘදු අනුකූලතාව."}, {"code": "E7", "pathNode_en": "Path E7 (Sensory Unit) — Right Mindfulness Anchoring", "dhammaInsight_en": "Continuous awareness maintained.", "patipatti_en": "Return to present moment.", "paticcaLogic_en": "Awareness → early detection.", "paccuppannaAnubhava_en": "Irritation noticed early.", "pathNode_si": "E7 මාර්ගය (සංවේදක ඒකකය) — නිවැරදි මනස නැවැත්වීම", "dhammaInsight_si": "අඛණ්ඩ දැනුවත්භාවය පවත්වා ගෙන යන්න..", "patipatti_si": "වර්තමාන මොහොත වෙත නැවත යන්න.", "paticcaLogic_si": "දැනුවත්භාවය → කලින් හඳුනා ගැනීම.", "paccuppannaAnubhava_si": "කෝපයක් කලින්ම දැක්කා."}, {"code": "E8", "pathNode_en": "Path E8 (Control Unit) — Right Concentration", "dhammaInsight_en": "Attention unified.", "patipatti_en": "Allow focus to settle.", "paticcaLogic_en": "Stability → insight deepens.", "paccuppannaAnubhava_en": "Steady breathing.", "pathNode_si": "E8 මාර්ගය (පාලන ඒකකය) — නිවැරදි සිහිය", "dhammaInsight_si": "අවධානය ඒකාබද්ධ වීම.", "patipatti_si": "අවධානය නිවැරදි වීමට ඉඩ දෙන්න.", "paticcaLogic_si": "ස්ථාවරත්වය → තීක්ෂ්ණ බුද්ධිය ගැඹුරු වේ.", "paccuppannaAnubhava_si": "ස්ථාවර හුස්ම ගැනීම."}, {"code": "E9", "pathNode_en": "Path E9 (Control Unit) — Path Coherence", "dhammaInsight_en": "Path factors support each other.", "patipatti_en": "Check consistency across actions.", "paticcaLogic_en": "Coherence → integrity restored.", "paccuppannaAnubhava_en": "Values and actions align.", "pathNode_si": "E9 මාර්ගය (පාලන ඒකකය) - මාර්ග සහජීවනය", "dhammaInsight_si": "මාර්ග සාධක එකිනෙකාට සහාය වේ.", "patipatti_si": "ක්‍රියාවන් අතර අනුකූලතාව පරීක්ෂා කරන්න.", "paticcaLogic_si": "සහජීවනය → අඛණ්ඩතාව යථා තත්ත්වයට පත් කරන ලදී.", "paccuppannaAnubhava_si": "වටිනාකම් සහ ක්‍රියාවන් සමපාත වේ."}, {"code": "E10", "pathNode_en": "Path E10 (Control Unit) — Daily-Life Integration", "dhammaInsight_en": "Path lived everywhere.", "patipatti_en": "Apply gates in life situations.", "paticcaLogic_en": "Integration → fragmentation ends.", "paccuppannaAnubhava_en": "Mindfulness in meetings.", "pathNode_si": "E10 මාර්ගය (පාලන ඒකකය) — දෛනික-ජීවිත ඒකාබද්ධ කිරීම", "dhammaInsight_si": "මාර්ගය සෑම තැනකම ජීවත් විය.", "patipatti_si": "ජීවන තත්වයන් තුළ මාර්ගය යොදන්න.", "paticcaLogic_si": "ඒකාබද්ධ කිරීම → ඛණ්ඩනය අවසන් වේ.", "paccuppannaAnubhava_si": "රැස්වීම්වලදී සිහිකල්පනාව."}, {"code": "E11", "pathNode_en": "Path E11 (Energy Unit) — Energy Regulation", "dhammaInsight_en": "Energy flows wholesomely.", "patipatti_en": "Direct effort wisely.", "paticcaLogic_en": "Regulation → stability.", "paccuppannaAnubhava_en": "Learning over rumination.", "pathNode_si": "E11 මාර්ගය (බලශක්ති ඒකකය) — ශක්ති නියාමනය", "dhammaInsight_si": "ශක්තිය සුවදායක ලෙස ගලා යයි.", "patipatti_si": "ඥානවන්තව සෘජු උත්සාහය.", "paticcaLogic_si": "නියාමනය → ස්ථාවරත්වය.", "paccuppannaAnubhava_si": "මෙනෙහි කිරීම ගැන ඉගෙනීම."}, {"code": "E12", "pathNode_en": "Path E12 (Memory Unit) — Feedback Correction", "dhammaInsight_en": "Practice refined by results.", "patipatti_en": "Adjust without self-blame.", "paticcaLogic_en": "Feedback → learning accelerates.", "paccuppannaAnubhava_en": "Effort softened.", "pathNode_si": "E12 මාර්ගය (මතක ඒකකය) — ප්‍රතිපෝෂණ නිවැරදි කිරීම", "dhammaInsight_si": "ප්‍රතිඵල අනුව ප්‍රශස්ත කරන ලද පුහුණුව.", "patipatti_si": "ස්වයං-දොස් පැවරීමකින් තොරව හැඩගැහෙන්න.", "paticcaLogic_si": "ප්‍රතිපෝෂණ → ඉගෙනීම වේගවත් කරයි.", "paccuppannaAnubhava_si": "උත්සාහය මෘදු විය."}, {"code": "E13", "pathNode_en": "Path E13 (Memory Unit) — Continuity Restoration", "dhammaInsight_en": "Practice resumes after lapse.", "patipatti_en": "Return without discouragement.", "paticcaLogic_en": "Continuity → momentum preserved.", "paccuppannaAnubhava_en": "Practice resumes next day.", "pathNode_si": "E13 මාර්ගය (මතක ඒකකය) — අඛණ්ඩතාව ප්‍රතිස්ථාපනය කිරීම", "dhammaInsight_si": "විවේකයෙන් පසු පුහුණුව නැවත ආරම්භ වේ.", "patipatti_si": "අධෛර්යමත් නොවී ආපසු එන්න.", "paticcaLogic_si": "අඛණ්ඩතාව → ගම්‍යතාව සංරක්ෂණය කර ඇත.", "paccuppannaAnubhava_si": "ඊළඟ දවසේ පුහුණුවීම් නැවත ආරම්භ වේ."}, {"code": "E14", "pathNode_en": "Path E14 (Idea Unit) — Compassion Integration", "dhammaInsight_en": "Wisdom expresses as compassion.", "patipatti_en": "Respond with understanding.", "paticcaLogic_en": "Compassion → humanized path.", "paccuppannaAnubhava_en": "Patience with mistakes.", "pathNode_si": "E14 මාර්ගය (අදහස් ඒකකය) — සහකම්පනය ඒකාබද්ධ කිරීම", "dhammaInsight_si": "ප්‍රඥාව සහකම්පනය ලෙස ප්‍රකාශ වේ.", "patipatti_si": "අවබෝධයෙන් ප්‍රතිචාර දක්වන්න.", "paticcaLogic_si": "සහකම්පනය → මානුෂීය මාර්ගය.", "paccuppannaAnubhava_si": "වැරදි සම්බන්ධයෙන් ඉවසීම."}, {"code": "E15", "pathNode_en": "Path E15 (Control Unit) — Path Confirmation", "dhammaInsight_en": "Path effectiveness verified.", "patipatti_en": "Observe reduced defilements.", "paticcaLogic_en": "Verification → confidence stabilizes.", "paccuppannaAnubhava_en": "Fewer reactions weekly.", "pathNode_si": "E15 මාර්ගය (පාලන ඒකකය) — මාර්ගය තහවුරු කිරීම", "dhammaInsight_si": "මාර්ග සඵලතාවය සත්‍යාපනය කර ඇත.", "patipatti_si": "අඩු වූ කෙලෙස් නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "සත්‍යාපනය → විශ්වාසය ස්ථාවර වේ.", "paccuppannaAnubhava_si": "සතිපතා ප්‍රතිචාර අඩුයි. කාන්ඩය F — සත්‍යාපනය සහ ඵල (ධම්මචක්ඛු) මාර්ගය (ආරම්භක ඒකකය) දහම පිලිබද තීක්ෂ්ණ බුද්ධිය ප්‍රතිපත්ති (පුහුණු ආකාරය) පටිච්ච තර්කනය (කොන්දේසිගතභාවය) පච්චුප්පන්න අනුභාව"}]}, {"id": "F", "title_en": "Category F — Verification & Fruition (Dhammacakkhu)", "description_en": "Confirming the path through direct seeing and transformation", "title_si": "", "description_si": "", "pathNodes": [{"code": "F1", "pathNode_en": "Path F1 (Control Unit) — Cause–Cessation Insight", "dhammaInsight_en": "Cause removal ends suffering.", "patipatti_en": "Observe cessation after non-feeding.", "paticcaLogic_en": "Cause absent → effect ceases.", "paccuppannaAnubhava_en": "Stress vanishes.", "pathNode_si": "F1 මාර්ගය (පාලන ඒකකය) — හේතුව–නිවා දැමීමේ තීක්ෂ්ණ බුද්ධිය", "dhammaInsight_si": "හේතුව නැති කිරීමෙන් දුක් වේදනා අවසන් වේ.", "patipatti_si": "පෝෂනය ලබා නොදීමෙන් පසු බලපෑම නැවැත්වීම නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "හේතුව නොමැති වීම → බලපෑම නතර වේ.", "paccuppannaAnubhava_si": "ආතතිය දුරු වේ."}, {"code": "F2", "pathNode_en": "Path F2 (Sensory Unit) — Non-Conceptual Seeing", "dhammaInsight_en": "Direct seeing beyond concepts.", "patipatti_en": "Observe without interpretation.", "paticcaLogic_en": "Seeing → doubt collapses.", "paccuppannaAnubhava_en": "Impermanence known directly.", "pathNode_si": "F2 මාර්ගය (සංවේදක ඒකකය) — සංකල්පීය නොවන දැකීම", "dhammaInsight_si": "සංකල්ප ඉක්මවා සෘජු දැකීම.", "patipatti_si": "අර්ථ නිරූපණයකින් තොරව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "නිවැරදි දැකීම තුල → සැකය බිඳ වැටෙන බව දැකීම.", "paccuppannaAnubhava_si": "අනිත්‍ය බව කෙලින්ම දැන ගැනීම."}, {"code": "F3", "pathNode_en": "Path F3 (Memory Unit) — Irreversibility", "dhammaInsight_en": "Insight cannot be un-seen.", "patipatti_en": "Notice persistence of understanding.", "paticcaLogic_en": "Insight stable → regression impossible.", "paccuppannaAnubhava_en": "Stories lose grip.", "pathNode_si": "F3 මාර්ගය (මතක ඒකකය) — ආපසු හැරවිය නොහැකි බව", "dhammaInsight_si": "තීක්ෂ්ණ බුද්ධිය නොපෙනෙන ලෙස පැවතිය නොහැක.", "patipatti_si": "අවබෝධයේ නොනැසී පැවතීම දකින්න.", "paticcaLogic_si": "තීක්ෂ්ණ බුද්ධිය ස්ථාවරයි → ප්‍රතිගමනය කළ නොහැකියි.", "paccuppannaAnubhava_si": "කතන්දරවලට ග්‍රහණය නැති වෙනවා."}, {"code": "F4", "pathNode_en": "Path F4 (Memory Unit) — Doubt Dissolution", "dhammaInsight_en": "Confidence grounded in verification.", "patipatti_en": "Recall repeated success.", "paticcaLogic_en": "Verification → confidence stable.", "paccuppannaAnubhava_en": "Trust in practice.", "pathNode_si": "F4 මාර්ගය (මතක ඒකකය) — සැක දුරුවී යාම", "dhammaInsight_si": "සත්‍යාපනය මත පදනම් වූ විශ්වාසය.", "patipatti_si": "නැවත නැවතත් සාර්ථකත්වය සිහිපත් කරන්න.", "paticcaLogic_si": "සත්‍යාපනය → විශ්වාසය ස්ථාවරයි.", "paccuppannaAnubhava_si": "ප්‍රායෝගිකව විශ්වාස කරන්න."}, {"code": "F5", "pathNode_en": "Path F5 (Idea Unit) — View Transformation", "dhammaInsight_en": "Shift from self-view to process-view.", "patipatti_en": "Notice reduced “I/me/mine.”", "paticcaLogic_en": "Identity weakens → freedom grows.", "paccuppannaAnubhava_en": "Emotions depersonalized.", "pathNode_si": "F5 මාර්ගය (අදහස් ඒකකය) — සිදුවන පරිවර්තනය බලන්න", "dhammaInsight_si": "ස්වයං-දර්ශනයෙන් ක්‍රියාවලි-දර්ශනයට මාරු වන්න.", "patipatti_si": "\"මම/මම/මගේ\" අඩු කළ දැන්වීම.", "paticcaLogic_si": "Identity weakens → freedom grows.", "paccuppannaAnubhava_si": "Emotions depersonalized."}, {"code": "F6", "pathNode_en": "Path F6 (Control Unit) — Natural Ethics", "dhammaInsight_en": "Virtue effortless.", "patipatti_en": "Observe spontaneous harmlessness.", "paticcaLogic_en": "Wisdom → virtue automatic.", "paccuppannaAnubhava_en": "Harm avoided naturally.", "pathNode_si": "F6 මාර්ගය (පාලන ඒකකය) — ස්වාභාවික ආචාර ධර්ම", "dhammaInsight_si": "ශීලය ආයාසයෙන් තොරයි.", "patipatti_si": "ස්වයංසිද්ධ හානිකර නොවන බව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "ප්‍රඥාව → සීලය / ගුණධර්ම නිරායාසවේ.", "paccuppannaAnubhava_si": "ස්වභාවිකවම හානිය වළක්වා ඇත."}, {"code": "F7", "pathNode_en": "Path F7 (Memory Unit) — Reduced Reactivity", "dhammaInsight_en": "Reactivity measurably reduced.", "patipatti_en": "Compare past vs present.", "paticcaLogic_en": "Reduction → validation.", "paccuppannaAnubhava_en": "Triggers lose power.", "pathNode_si": "F7 මාර්ගය (මතක ඒකකය) — අඩු කළ ප්‍රතික්‍රියාශීලීත්වය", "dhammaInsight_si": "ප්‍රතික්‍රියාශීලීත්වය මැනිය හැකි ලෙස අඩු වී ඇත.", "patipatti_si": "අතීතය සහ වර්තමානය සසඳන්න.", "paticcaLogic_si": "අඩු කිරීම → වලංගුකරණය.", "paccuppannaAnubhava_si": "ප්‍රේරක වල බලය නැති වේ."}, {"code": "F8", "pathNode_en": "Path F8 (Control Unit) — Stability in Difficulty", "dhammaInsight_en": "Clarity under pressure.", "patipatti_en": "Observe calm in stress.", "paticcaLogic_en": "Stability → maturity.", "paccuppannaAnubhava_en": "Calm during criticism.", "pathNode_si": "F8 මාර්ගය (පාලන ඒකකය) — දුෂ්කරතාවයන්හිදී ස්ථායිතාව", "dhammaInsight_si": "පීඩනය යටතේ මනසේ පැහැදිලි බව.", "patipatti_si": "ආතතිය තුළ සන්සුන් බව නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "ස්ථාවරත්වය → පරිණතභාවය.", "paccuppannaAnubhava_si": "විවේචන අතරතුර සන්සුන්ව සිටින්න."}, {"code": "F9", "pathNode_en": "Path F9 (Idea Unit) — Non-Attainment", "dhammaInsight_en": "No identity around progress.", "patipatti_en": "Notice absence of pride.", "paticcaLogic_en": "Ego not reinforced.", "paccuppannaAnubhava_en": "Feeling ordinary.", "pathNode_si": "F9 මාර්ගය (අදහස් ඒකකය) — සාක්ෂාත් කර නොගැනීම", "dhammaInsight_si": "ප්‍රගතිය වටා අනන්‍යතාවයක් නොමැත.", "patipatti_si": "ආඩම්බරයක් නොමැතිකම සැලකිල්ලට ගන්න.", "paticcaLogic_si": "ආත්මාර්ථකාමිත්වය ශක්තිමත් නොවේ.", "paccuppannaAnubhava_si": "සාමාන්‍ය බවක් දැනෙනවා."}, {"code": "F10", "pathNode_en": "Path F10 (Idea Unit) — Compassion Expansion", "dhammaInsight_en": "Compassion deepens with wisdom.", "patipatti_en": "Observe gentler responses.", "paticcaLogic_en": "Compassion → integration.", "paccuppannaAnubhava_en": "Patient listening.", "pathNode_si": "F10 මාර්ගය (අදහස් ඒකකය) — ප්‍රසාරණය", "dhammaInsight_si": "ප්‍රඥාව සමඟ අනුකම්පාව ගැඹුරු වේ.", "patipatti_si": "මෘදු ප්‍රතිචාර නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "අනුකම්පාව → ඒකාබද්ධ කිරීම.", "paccuppannaAnubhava_si": "ඉවසිලිවන්ත සවන්දීම."}, {"code": "F11", "pathNode_en": "Path F11 (Control Unit) — Life Integration", "dhammaInsight_en": "Dhamma active everywhere.", "patipatti_en": "Check consistency across domains.", "paticcaLogic_en": "Unity → fragmentation ends.", "paccuppannaAnubhava_en": "Same clarity at work/home.", "pathNode_si": "F11 මාර්ගය (පාලන ඒකකය) — ජීවිත ඒකාබද්ධ කිරීම", "dhammaInsight_si": "ධර්මය සෑම තැනකම ක්‍රියාත්මකයි.", "patipatti_si": "වසම් හරහා අනුකූලතාව පරීක්ෂා කරන්න.", "paticcaLogic_si": "එකමුතුකම → ඛණ්ඩනය අවසන් වේ.", "paccuppannaAnubhava_si": "රැකියාවේදී/නිවසේදී එකම පැහැදිලිකම."}, {"code": "F12", "pathNode_en": "Path F12 (Memory Unit) — Resilience", "dhammaInsight_en": "Faster recovery from lapses.", "patipatti_en": "Notice quick reset.", "paticcaLogic_en": "Recovery speed → confidence grows.", "paccuppannaAnubhava_en": "Rapid return to balance.", "pathNode_si": "F12 මාර්ගය (මතක ඒකකය) — ඔරොත්තු දීමේ හැකියාව", "dhammaInsight_si": "අතපසුවීම් වලින් වේගවත් සුවය.", "patipatti_si": "ඉක්මන් යළි පිහිටුවීමක් සටහන් කරන්න.", "paticcaLogic_si": "සුවවීමේ වේගය → විශ්වාසය වර්ධනය වේ.", "paccuppannaAnubhava_si": "සමතුලිතතාවයට ඉක්මනින් නැවත පැමිණීම."}, {"code": "F13", "pathNode_en": "Path F13 (Sensory Unit) — Non-Fear of Emptiness", "dhammaInsight_en": "Comfort with stillness.", "patipatti_en": "Rest without stimulation.", "paticcaLogic_en": "Fear absent → deeper freedom.", "paccuppannaAnubhava_en": "Sitting quietly at ease.", "pathNode_si": "F13 මාර්ගය (සංවේදක ඒකකය) — හිස්බව පිළිබඳ බිය නොවීම", "dhammaInsight_si": "නිශ්ශබ්දතාවයෙන් සැනසීම.", "patipatti_si": "උත්තේජනයකින් තොරව විවේක ගන්න.", "paticcaLogic_si": "බිය නැත → ගැඹුරු නිදහස.", "paccuppannaAnubhava_si": "නිහඬව සැහැල්ලුවෙන් වාඩි වී සිටීම."}, {"code": "F14", "pathNode_en": "Path F14 (Control Unit) — Teaching by Being", "dhammaInsight_en": "Dhamma transmitted by presence.", "patipatti_en": "Observe others responding.", "paticcaLogic_en": "Presence → Dhamma lives.", "paccuppannaAnubhava_en": "Others feel calm near you.", "pathNode_si": "මාර්ගය F14 (පාලන ඒකකය) — පැවැත්මෙන් ඉගැන්වීම", "dhammaInsight_si": "පැමිණීමෙන් සම්ප්‍රේෂණය වන ධර්මය.", "patipatti_si": "අනෙක් අය ප්‍රතිචාර දක්වන ආකාරය නිරීක්ෂණය කරන්න.", "paticcaLogic_si": "පැවැත්ම → ධර්මය ජීවමානයි.", "paccuppannaAnubhava_si": "අනෙක් අයට ඔබ අසල සන්සුන් බවක් දැනේ."}, {"code": "F15", "pathNode_en": "Path F15 (Control Unit) — Fruition Confirmation", "dhammaInsight_en": "Wheel has turned correctly.", "patipatti_en": "Acknowledge alignment quietly.", "paticcaLogic_en": "Dhammacakkhu established.", "paccuppannaAnubhava_en": "“This works, reliably.”", "pathNode_si": "F15 මාර්ගය (පාලන ඒකකය) — ඵල තහවුරු කිරීම", "dhammaInsight_si": "දම්සක නිවැරදිව හැරී ඇත.", "patipatti_si": "නිහඬව පෙළගැස්ම පිළිගන්න.", "paticcaLogic_si": "ධම්මචක්ඛු ස්ථාපිත කරන ලදී.", "paccuppannaAnubhava_si": "\"මෙය විශ්වාසදායක ලෙස ක්‍රියා කරයි.\" Glossary (Key Terms Used in the Logic-Gate / Path-Node System) Anicca Impermanence; the characteristic that all conditioned phenomena arise and pass away. In this system, anicca is directly observed through changing sensations, emotions, and mental states rather than treated as a belief. Anubhava (Paccuppanna Anubhava) Present-moment lived experience. Used to emphasize that verification of the Dhamma occurs through immediate experience, not abstract reasoning or memory. Bhava-Taṇhā Craving for becoming or being something (status, identity, continuity). Identified as a causal driver of stress, pressure, and identity-based suffering. Brain / Energy Model A functional, non-anatomical framework describing how experience is processed through sensory input, memory conditioning, perception, narrative construction, executive control, and motivational energy. Used purely as a pedagogical lens, not as a neuroscientific explanation of liberation. Control Unit The functional capacity responsible for judgment, decision-making, inhibition, and ethical restraint. In Buddhist terms, it supports sammā-vāyāma, sammā-vācā, and sammā-kammanta when informed by wisdom. Design Unit The functional capacity that organizes perception and patterns experience. Closely aligned with saññā (perception), shaping how sensory input is interpreted. Dhammacakkappavattana Sutta “The Discourse on Setting the Wheel of Dhamma in Motion,” the Buddha’s first sermon, which introduces the Middle Way and the Four Noble Truths. Dhammacakkhu (Dhamma-eye) The arising of direct insight into the nature of phenomena, expressed in the canonical phrase: “Yaṃ kiñci samudayadhammaṃ, sabbaṃ taṃ nirodhadhammaṃ.” In this system, Dhammacakkhu is verified through irreversible understanding and reduced suffering, not mystical experience. Dukkha Unsatisfactoriness, stress, or suffering inherent in conditioned existence. Defined here as misalignment between reality and craving-based processing, not merely pain. Energy Unit The functional capacity associated with motivation, urgency, effort, and emotional drive. Neutral by nature; becomes suffering-producing when bound to craving (taṇhā). Idea Unit The functional capacity that generates narratives, interpretations, identities, and meaning-making. Closely related to papañca (mental proliferation). Kāma-Taṇhā Craving for sensory pleasure or emotional comfort. Identified as a primary driver of repetitive dissatisfaction. Logic Gate / Path Node A necessary experiential condition that must be fulfilled before the next stage of understanding or practice can arise. In this system, “Path Node” emphasizes lived progression rather than mechanical logic. Magga (Noble Eightfold Path) The integrated path of wisdom, ethical conduct, and mental discipline leading to the cessation of suffering. Represented in Category E as a functional, daily-life operating system. Majjhima Paṭipadā (Middle Way) The balanced approach that avoids indulgence and suppression. In this system, it refers especially to wise regulation of energy and effort. Memory Unit The functional capacity that stores conditioning, habits, and learned responses (saṅkhāra). Plays a key role in repetition, pattern formation, and reconditioning. Nirodha Cessation; the ending of suffering when its cause is not fed. Understood here as an observable, lawful process rather than annihilation or transcendence. Paṭicca Logic (Conditionality) Causal logic based on paṭicca samuppāda (dependent arising). Describes how specific conditions lead to specific outcomes, and how removing conditions leads to cessation. Paṭipatti Practice; the lived cultivation of the path through ethical conduct, mental discipline, and insight. Paṭivedha Direct realization or experiential penetration of the Dhamma, culminating in verification and transformation. Paññā Wisdom; clear seeing of reality as it is. In this system, paññā arises from repeated observation of conditionality, not from belief. Phassa Contact; the meeting of sense base, object, and consciousness. Identified as the initial trigger point for experience. Sammā-Diṭṭhi (Right View) Correct understanding of suffering, its cause, cessation, and the path. Serves as the orienting framework for all other path factors. Saṅkhāra Conditioned formations; mental and behavioral patterns shaped by past actions and intentions. Addressed through repetition and reconditioning. Sati Mindfulness; present-moment awareness of body, feelings, mind, and phenomena. Central to early detection of suffering and craving. Sensory Unit The functional capacity through which sights, sounds, bodily sensations, thoughts, and emotions are registered. Corresponds to phassa and the sense bases. Sīla Ethical conduct; restraint of harmful speech and action. In this system, sīla emerges naturally as craving subsides, rather than through moral force alone. Taṇhā Craving; the motivational force that fuels suffering. Includes craving for pleasure (kāma), becoming (bhava), and non-becoming (vibhava). Upāya (Skillful Means) A pedagogical or practical method used to guide beings toward liberation according to their capacities. This Logic-Gate System is explicitly framed as upāya, not doctrine. Vibhava-Taṇhā Craving for non-existence, escape, or annihilation of experience. Often expressed as avoidance, numbing, or suppression. Yoniso Manasikāra Wise attention; directing attention toward causes and conditions rather than blame or speculation. Central to the functioning of many Path Nodes. Closing Note All terms in this glossary are used functionally and experientially, not metaphysically. They are intended to support direct observation, ethical clarity, and verification, in alignment with the Buddha’s original intent."}]}];
+
+  const els = {
+    homeBtn: document.getElementById('homeBtn'),
+    backBtn: document.getElementById('backBtn'),
+    search: document.getElementById('search'),
+    viewHome: document.getElementById('viewHome'),
+    viewCategory: document.getElementById('viewCategory'),
+    viewDetails: document.getElementById('viewDetails'),
+  };
+
+  const state = {
+    mode: 'home',     // home | category | details
+    categoryId: null,
+    nodeCode: null,
+    search: ''
+  };
+
+  function norm(s) {
+    return (s || '').toString().toLowerCase().normalize('NFKD');
+  }
+
+  function getCategory(id) {
+    return FRAMEWORK.find(c => c.id === id);
+  }
+
+  function getNode(catId, code) {
+    const cat = getCategory(catId);
+    if (!cat) return null;
+    return (cat.pathNodes || []).find(n => n.code === code);
+  }
+
+  function missingLabel() {
+    return `<div class="missing">Sinhala missing</div>`;
+  }
+
+  function bilingualBlock(en, si) {
+    const enSafe = en ? escapeHtml(en) : '';
+    const siSafe = si ? escapeHtml(si) : '';
+    return `
+      <div class="rowCell">
+        <div class="en">${enSafe || '—'}</div>
+        ${siSafe ? `<div class="si">${siSafe}</div>` : missingLabel()}
+      </div>
+    `;
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replaceAll('&', '&amp;')
+                   .replaceAll('<', '&lt;')
+                   .replaceAll('>', '&gt;')
+                   .replaceAll('"', '&quot;')
+                   .replaceAll("'", '&#039;');
+  }
+
+  function categorySinhalaCoverage(cat) {
+    const nodes = cat.pathNodes || [];
+    if (!nodes.length) return { done: 0, total: 0 };
+    let done = 0;
+    for (const n of nodes) {
+      const hasAnySi = !!(n.pathNode_si || n.dhammaInsight_si || n.patipatti_si || n.paticcaLogic_si || n.paccuppannaAnubhava_si);
+      if (hasAnySi) done++;
+    }
+    return { done, total: nodes.length };
+  }
+
+  function showHome() {
+    state.mode = 'home';
+    state.categoryId = null;
+    state.nodeCode = null;
+
+    els.viewHome.classList.remove('hidden');
+    els.viewCategory.classList.add('hidden');
+    els.viewDetails.classList.add('hidden');
+    els.backBtn.classList.add('hidden');
+
+    renderHome();
+  }
+
+  function showCategory(catId) {
+    state.mode = 'category';
+    state.categoryId = catId;
+    state.nodeCode = null;
+
+    els.viewHome.classList.add('hidden');
+    els.viewCategory.classList.remove('hidden');
+    els.viewDetails.classList.add('hidden');
+    els.backBtn.classList.remove('hidden');
+
+    renderCategory();
+  }
+
+  function showDetails(catId, nodeCode) {
+    state.mode = 'details';
+    state.categoryId = catId;
+    state.nodeCode = nodeCode;
+
+    els.viewHome.classList.add('hidden');
+    els.viewCategory.classList.add('hidden');
+    els.viewDetails.classList.remove('hidden');
+    els.backBtn.classList.remove('hidden');
+
+    renderDetails();
+  }
+
+  function renderHome() {
+    const q = norm(state.search);
+
+    const cats = FRAMEWORK.filter(c => {
+      const hay = norm(c.title_en) + ' ' + norm(c.title_si) + ' ' + norm(c.description_en) + ' ' + norm(c.description_si);
+      if (!q) return true;
+      if (hay.includes(q)) return true;
+      // also search path nodes
+      return (c.pathNodes || []).some(n => {
+        const nh = norm(n.pathNode_en) + ' ' + norm(n.pathNode_si) + ' ' + norm(n.code);
+        return nh.includes(q);
+      });
+    });
+
+    const cards = cats.map(cat => {
+      const cov = categorySinhalaCoverage(cat);
+      const ratio = cov.total ? (cov.done / cov.total) : 0;
+      const chip = (cov.total && ratio >= 0.95) ? `<span class="chipOk px-3 py-1 rounded-full text-xs font-semibold">Sinhala ready</span>`
+                  : (cov.total && ratio >= 0.5) ? `<span class="chipWarn px-3 py-1 rounded-full text-xs font-semibold">Sinhala partial</span>`
+                  : `<span class="chip px-3 py-1 rounded-full text-xs font-semibold">Sinhala minimal</span>`;
+
+      const siTitle = cat.title_si ? escapeHtml(cat.title_si) : '—';
+      const siDesc = cat.description_si ? escapeHtml(cat.description_si) : '';
+
+      return `
+        <button class="glass2 rounded-2xl p-5 text-left hover:bg-white/10 transition"
+                onclick="window.__navCategory('${cat.id}')">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-xs muted2 font-semibold tracking-wide">Category ${cat.id}</div>
+              <div class="mt-1 text-lg font-extrabold">${escapeHtml(cat.title_en)}</div>
+              <div class="mt-1 text-sm muted">${siTitle}</div>
+              <div class="mt-3 text-sm muted2">${escapeHtml(cat.description_en || '')}</div>
+              ${siDesc ? `<div class="mt-1 text-sm muted2">${siDesc}</div>` : ''}
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              ${chip}
+              <span class="chip px-3 py-1 rounded-full text-xs">${(cat.pathNodes||[]).length} paths</span>
+            </div>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    els.viewHome.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${cards || '<div class="muted">No results.</div>'}
+      </div>
+    `;
+  }
+
+  function renderCategory() {
+    const cat = getCategory(state.categoryId);
+    if (!cat) {
+      els.viewCategory.innerHTML = `<div class="muted">Category not found.</div>`;
+      return;
+    }
+
+    const q = norm(state.search);
+
+    const nodes = (cat.pathNodes || []).filter(n => {
+      if (!q) return true;
+      const hay = norm(n.code) + ' ' + norm(n.pathNode_en) + ' ' + norm(n.pathNode_si) + ' ' +
+                  norm(n.dhammaInsight_en) + ' ' + norm(n.dhammaInsight_si);
+      return hay.includes(q);
+    });
+
+    const items = nodes.map(n => {
+      const hasSi = !!(n.pathNode_si || n.dhammaInsight_si || n.patipatti_si || n.paticcaLogic_si || n.paccuppannaAnubhava_si);
+      const chip = hasSi ? `<span class="chipOk px-2 py-0.5 rounded-full text-[11px] font-semibold">SI</span>`
+                         : `<span class="chipWarn px-2 py-0.5 rounded-full text-[11px] font-semibold">EN only</span>`;
+
+      return `
+        <button class="glass2 rounded-2xl p-4 text-left hover:bg-white/10 transition"
+                onclick="window.__navDetails('${cat.id}','${n.code}')">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="chip px-2 py-0.5 rounded-full text-[11px] font-bold">${n.code}</span>
+                ${chip}
+              </div>
+              <div class="mt-2 font-extrabold">${escapeHtml(n.pathNode_en || '')}</div>
+              <div class="mt-1 text-sm muted">${n.pathNode_si ? escapeHtml(n.pathNode_si) : '—'}</div>
+              <div class="mt-2 text-sm muted2">${escapeHtml(n.dhammaInsight_en || '')}</div>
+              <div class="mt-1 text-sm muted2">${n.dhammaInsight_si ? escapeHtml(n.dhammaInsight_si) : ''}</div>
+            </div>
+            <div class="muted2 text-sm">→</div>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    els.viewCategory.innerHTML = `
+      <div class="glass2 rounded-2xl p-5">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div class="text-xs muted2 font-semibold tracking-wide">Selected Category</div>
+            <div class="mt-1 text-2xl font-extrabold">${escapeHtml(cat.title_en)}</div>
+            <div class="mt-1 muted">${cat.title_si ? escapeHtml(cat.title_si) : '—'}</div>
+            <div class="mt-3 muted2">${escapeHtml(cat.description_en || '')}</div>
+            ${cat.description_si ? `<div class="mt-1 muted2">${escapeHtml(cat.description_si)}</div>` : ''}
+          </div>
+          <div class="flex gap-2 items-center">
+            <span class="chip px-3 py-1 rounded-full text-xs">${(cat.pathNodes||[]).length} total paths</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${items || '<div class="muted">No path nodes match your search.</div>'}
+      </div>
+    `;
+  }
+
+  function renderDetails() {
+    const node = getNode(state.categoryId, state.nodeCode);
+    const cat = getCategory(state.categoryId);
+
+    if (!node || !cat) {
+      els.viewDetails.innerHTML = `<div class="muted">Row not found.</div>`;
+      return;
+    }
+
+    const headings = [
+      "Path Node (Initiation Unit)",
+      "Dhamma Insight",
+      "Paṭipatti (Practice Mode)",
+      "Paṭicca Logic (Conditionality)",
+      "Paccuppanna Anubhava"
+    ];
+
+    els.viewDetails.innerHTML = `
+      <div class="glass2 rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <div class="text-xs muted2 font-semibold tracking-wide">Row Details</div>
+            <div class="mt-1 text-2xl font-extrabold">${escapeHtml(node.code)} — ${escapeHtml(cat.title_en)}</div>
+            <div class="mt-1 muted">${cat.title_si ? escapeHtml(cat.title_si) : '—'}</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn px-4 py-2 rounded-xl font-semibold" onclick="window.__navCategory('${cat.id}')">Back to Category</button>
+          </div>
+        </div>
+
+        <div class="mt-5 overflow-x-auto">
+          <table class="min-w-[900px] w-full border-separate border-spacing-0">
+            <thead>
+              <tr>
+                ${headings.map(h => `<th class="text-left px-4 py-3 text-sm font-extrabold border-b border-white/15 bg-white/5 sticky top-0">${escapeHtml(h)}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="align-top">
+                <td class="px-4 py-4 border-b border-white/10">${bilingualBlock(node.pathNode_en, node.pathNode_si)}</td>
+                <td class="px-4 py-4 border-b border-white/10">${bilingualBlock(node.dhammaInsight_en, node.dhammaInsight_si)}</td>
+                <td class="px-4 py-4 border-b border-white/10">${bilingualBlock(node.patipatti_en, node.patipatti_si)}</td>
+                <td class="px-4 py-4 border-b border-white/10">${bilingualBlock(node.paticcaLogic_en, node.paticcaLogic_si)}</td>
+                <td class="px-4 py-4 border-b border-white/10">${bilingualBlock(node.paccuppannaAnubhava_en, node.paccuppannaAnubhava_si)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 muted2 text-sm">
+          Note: Sinhala text is shown directly under English in each cell (path-node level bilingual view).
+        </div>
+      </div>
+    `;
+  }
+
+  // Navigation hooks
+  window.__navCategory = (id) => showCategory(id);
+  window.__navDetails = (catId, code) => showDetails(catId, code);
+
+  // Controls
+  els.homeBtn.addEventListener('click', () => showHome());
+  els.backBtn.addEventListener('click', () => {
+    if (state.mode === 'details') return showCategory(state.categoryId);
+    if (state.mode === 'category') return showHome();
+    return showHome();
+  });
+
+  els.search.addEventListener('input', (e) => {
+    state.search = e.target.value || '';
+    if (state.mode === 'home') renderHome();
+    else if (state.mode === 'category') renderCategory();
+    else if (state.mode === 'details') renderDetails(); // allow search + jump? keep as-is
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (state.mode === 'details') showCategory(state.categoryId);
+      else if (state.mode === 'category') showHome();
+    }
+  });
+
+  // Start
+  showHome();
+</script>
+
+<footer class="mt-10 text-xs text-white/60 text-center leading-relaxed">
+  <div class="font-semibold text-white/80">
+    Created by Chandima Gunasena
+  </div>
+  <div>
+    AI-assisted analysis, structuring, and visualization using ChatGPT (OpenAI)
+  </div>
+  <div class="mt-1 text-white/40">
+    All conceptual responsibility and authorship remain with the human author.
+  </div>
+</footer>
+
+</body>
+</html>
